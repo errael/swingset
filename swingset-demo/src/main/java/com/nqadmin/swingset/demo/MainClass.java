@@ -74,6 +74,9 @@ import com.nqadmin.swingset.models.SSMysqlSetModel;
 
 import gnu.getopt.Getopt;
 
+import com.nqadmin.swingset.datasources.DefaultSSDBSupport;
+import com.nqadmin.swingset.utils.CentralLookup;
+
 /**
  * A JFrame with buttons to launch each of the SwingSet example/demo screens.
  */
@@ -243,6 +246,8 @@ public class MainClass extends JFrame {
 				logger.fatal("Error initializing database. Exiting.");
 				System.exit(1);
     		}
+		// ADVERTISE DATABASE ACCESS PLUGIN
+			CentralLookup.getDefault().add(DefaultSSDBSupport.get(dbConnection));
 
 	    // ADD ACTION LISTENERS FOR BUTTONS
 	        btnExample1.addActionListener( new MyButtonListener());

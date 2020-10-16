@@ -40,7 +40,6 @@ package com.nqadmin.swingset;
 import java.sql.JDBCType;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,13 +48,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 
+import com.nqadmin.swingset.datasources.SSDBSupport;
 import com.nqadmin.swingset.models.SSListItem;
+import com.nqadmin.swingset.models.SSListItemFormat;
+import com.nqadmin.swingset.utils.CentralLookup;
 
 import ca.odell.glazedlists.EventList;
 
 import static com.nqadmin.swingset.datasources.RowSetOps.*;
-
-import com.nqadmin.swingset.models.SSListItemFormat;
 
 
 // SSDBComboBox.java
@@ -302,6 +302,8 @@ public class SSDBComboBox extends SSBaseComboBox<Long, Object, Object>
 	// private boolean settingSelectedItem = false;
 
 	private static final boolean USE_GLAZED_MODEL = true;
+
+	protected final SSDBSupport support = CentralLookup.getDefault().lookup(SSDBSupport.class);
 
 	/**
 	 * Creates an object of the SSDBComboBox.
@@ -934,10 +936,12 @@ public class SSDBComboBox extends SSBaseComboBox<Long, Object, Object>
 	private void queryData() {
 
 		//Long primaryKey = null;
-		ResultSet rs;
+		//DatabaseAppPlugin
+		//ResultSet rs;
 
 		// this.data.getReadWriteLock().writeLock().lock();
-		try (Model.Remodel remodel = optionModel.getRemodel()) {
+		try (Model.Remodel remodel = optionModel.getRemodel();
+				ResultSet rs = support.execute(getQuery())) {
 			logger.trace("{}: Clearing eventList.", () -> getColumnForLog());
 			remodel.clear();
 			nullItem = null;
@@ -952,8 +956,9 @@ public class SSDBComboBox extends SSBaseComboBox<Long, Object, Object>
 			// }
 			adjustForNullItem();
 
-			Statement statement = ssCommon.getConnection().createStatement();
-			rs = statement.executeQuery(getQuery());
+			//DatabaseAppPlugin
+			//Statement statement = ssCommon.getConnection().createStatement();
+			//rs = statement.executeQuery(getQuery());
 
 			//optionColumnType = getJDBCColumnType(rs, rs.findColumn(displayColumnName));
 
@@ -981,7 +986,8 @@ public class SSDBComboBox extends SSBaseComboBox<Long, Object, Object>
 				newItems.add(remodel.createOptionMappingItem(pk, opt, opt2));
 			}
 			remodel.addAll(newItems);
-			rs.close();
+			//DatabaseAppPlugin
+			//rs.close();
 
 //				// extract primary key
 //				primaryKey = rs.getLong(getPrimaryKeyColumnName());

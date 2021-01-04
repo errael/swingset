@@ -37,6 +37,8 @@
  ******************************************************************************/
 package com.nqadmin.swingset.datasources;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.JDBCType;
@@ -296,6 +298,34 @@ public class RowSetOps {
 	}
 
 	/**
+	 * Convert the _text to an object of type _clazz.
+	 * @param _clazz target type
+	 * @param _text string to convert
+	 * @return converted object
+	 * @deprecated use parseText(JdbcDataTypeConvsion.ClassToJDBCType(clazz, text))
+	 */
+	// TODO: maybe keep this and put in utils.
+	// TODO: handle some types that don't have valueOf method
+	@Deprecated
+	public static Object getValueOf(Class<?> _clazz, String _text)
+	throws NumberFormatException {
+		
+		Object value = null;
+		try {
+			// Method method = getMethod(_clazz, "valueOf", new Class<?>[]{String.class});
+			//Method method = _clazz.getMethod("valueOf", new Class<?>[]{String.class});
+			Method valueOfMethod = _clazz.getMethod("valueOf", String.class);
+			value = valueOfMethod.invoke(null, _text);
+			// Invokable<Object, Object> invokable = new TypeToken<Object>() {}.method(valueOfMethod);
+			// value = invokable.invoke(null, _text);
+			//value = invoke(method, null, new Object[] { _text});
+		} catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
+			throw new IllegalArgumentException("valueOf reflection failure for " + _clazz.getSimpleName(), ex);
+		}
+		return value;
+	}
+
+	/**
 	 * Retrieves an int corresponding to the designated column's type based on the
 	 * column name
 	 *
@@ -329,10 +359,144 @@ public class RowSetOps {
 		return getJDBCType(getColumnType(_resultSet, _columnName));
 	}
 
+	/**
+	 * Using the JDBCType from metadata convert a String to an Object.
+	 * @param _resultSet get metadata from here
+	 * @param _columnName column name
+	 * @param _text string value
+	 * @return object of value
+	 * @throws NumberFormatException conversion error
+	 * @throws SQLException database access error
+	 */
+	public static Object parseText(final ResultSet _resultSet, final String _columnName, final String _text)
+	throws NumberFormatException, SQLException {
+		JDBCType jdbcType = getJDBCColumnType(_resultSet, _columnName);
+		if (!textUpdateOK.contains(jdbcType)) {
+			throw new IllegalArgumentException("Unsupported parseText data type: " + jdbcType.getName() + " for " + _columnName);
+		}
+		return parseText(jdbcType, _text);
+	}
+
+	/**
+	 * Using the JDBCType from metadata convert a String to an Object.
+	 * @param _resultSet get metadata from here
+	 * @param _columnIndex column index
+	 * @param _text string value
+	 * @return object of value
+	 * @throws NumberFormatException conversion error
+	 * @throws SQLException database access error
+	 */
+	public static Object parseText(final ResultSet _resultSet, final int _columnIndex, final String _text)
+	throws NumberFormatException, SQLException {
+		JDBCType jdbcType = getJDBCColumnType(_resultSet, _columnIndex);
+		if (!textUpdateOK.contains(jdbcType)) {
+			throw new IllegalArgumentException("Unsupported parseText data type: " + jdbcType.getName() + " for " + getColumnName(_resultSet, _columnIndex));
+		}
+		return parseText(jdbcType, _text);
+	}
+
+	/**
+	 * Using the JDBCType convert a String to an Object.
+	 * @param _jdbcType convert to Object type associated with this type.
+	 * @param _text string value
+	 * @return object of value
+	 * @throws NumberFormatException conversion error
+	 */
+	public static Object parseText(final JDBCType _jdbcType, final String _text)
+	throws NumberFormatException {
+		if (!textUpdateOK.contains(_jdbcType)) {
+			throw new IllegalArgumentException("Unsupported parseText data type: " + _jdbcType.getName());
+		}
+
+		Object value;
+
+		switch (_jdbcType) {
+	
+		case INTEGER:
+			value = Integer.parseInt(_text);
+			break;
+
+		case SMALLINT:
+			value = Short.parseShort(_text);
+			break;
+
+		case TINYINT:
+			value = Byte.parseByte(_text);
+			break;
+			
+		case BIGINT:
+			value = Long.parseLong(_text);
+			break;
+			
+		case REAL:
+			value = Float.parseFloat(_text);
+			break;
+			
+		case FLOAT:
+		case DOUBLE:
+			value = Double.parseDouble(_text);
+			break;
+			
+		case DECIMAL:
+		case NUMERIC:
+			value = new BigDecimal(_text);
+			break;
+			
+		case BOOLEAN:
+		case BIT:
+			// CONVERT THE GIVEN STRING TO BOOLEAN TYPE
+			value = Boolean.valueOf(_text);
+			break;
+			
+		case DATE:
+// TODO Good to get rid of getSQLDate if possible.
+			if (_text.length() == 10) {
+				value = SSCommon.getSQLDate(_text);
+			} else {
+			// 2020-12-01_BP: Might as well at least try to process a date that is other than 10 characters
+				value = java.sql.Date.valueOf(_text);
+			}
+			break;
+			
+		case TIME:
+			value = java.sql.Time.valueOf(_text);
+			break;
+			
+		case TIMESTAMP:
+		// TODO: We're not doing anything here
+		// TODO: Probably a better way to handle date to timestamp conversion. Formatter? Get rid of getSQLDate() if possible.
+			// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)
+			if (_text.length() == 10) {
+				value = new Timestamp(SSCommon.getSQLDate(_text).getTime());
+			} else {
+			// Per ER email 2020-11-25, we weren't even trying to handle a legitimate timestamp
+				value = java.sql.Timestamp.valueOf(_text);
+			}
+			break;
+			
+		case CHAR:
+		case VARCHAR:
+		case LONGVARCHAR:
+		case NCHAR:
+		case NVARCHAR:
+		case LONGNVARCHAR:
+			value = _text;
+			break;
+
+		default:
+			throw new IllegalStateException("switch cases out of sync");
+		} // end switch
+
+		return value;
+	}
+
 	private static final EnumSet<JDBCType> textUpdateEmptyOK = EnumSet.of(
 			JDBCType.CHAR,
 			JDBCType.VARCHAR,
-			JDBCType.LONGVARCHAR
+			JDBCType.LONGVARCHAR,
+			JDBCType.NCHAR,
+			JDBCType.NVARCHAR,
+			JDBCType.LONGNVARCHAR
 	);
 	
 	private static final EnumSet<JDBCType> textUpdateOK = EnumSet.of(
@@ -352,7 +516,10 @@ public class RowSetOps {
 			JDBCType.TIMESTAMP,
 			JDBCType.CHAR,
 			JDBCType.VARCHAR,
-			JDBCType.LONGVARCHAR
+			JDBCType.LONGVARCHAR,
+			JDBCType.NCHAR,
+			JDBCType.NVARCHAR,
+			JDBCType.LONGNVARCHAR
 	);
 
 	/**
@@ -373,12 +540,14 @@ public class RowSetOps {
 	 * @throws NumberFormatException thrown if unable to parse a string to number format
 	 */
 	// TODO: Eclipse is giving a Potential null pointer access, but we have assert(_updatedValue != null) so may be able to remove warning in future.
+	// TODO: version that takes column index
 	@SuppressWarnings("null")
 	public static void updateColumnText(final RowSet _rowSet, final String _updatedValue, final String _columnName, final boolean _allowNull) throws NullPointerException, SQLException, NumberFormatException {
 
 		LogManager.getLogger().debug("[" + _columnName + "]. Update to: " + _updatedValue + ". Allow null? [" + _allowNull + "]");
 
-		JDBCType jdbcType = getJDBCType(getColumnType(_rowSet, _columnName));
+		int columnIndex = getColumnIndex(_rowSet, _columnName);
+		JDBCType jdbcType = getJDBCColumnType(_rowSet, columnIndex);
 		
 		if (!textUpdateOK.contains(jdbcType)) {
 			LogManager.getLogger().error("Unsupported data type of " + jdbcType.getName() + " for column " + _columnName + ".");
@@ -387,7 +556,7 @@ public class RowSetOps {
 
 		// On insert row, write null if updatedValue is null or empty string, and do not perform other checks. 
 		if ((_updatedValue == null || _updatedValue.isEmpty()) && SSDataNavigator.isInserting(_rowSet)) {
-			_rowSet.updateNull(_columnName);
+			_rowSet.updateNull(columnIndex);
 			return;
 		}
 
@@ -414,7 +583,7 @@ public class RowSetOps {
     	   	// Java 11: || (_updatedValue.isBlank() && !textUpdateEmptyOK.contains(jdbcType))) {
 
             if (_allowNull) {
-                _rowSet.updateNull(_columnName);
+                _rowSet.updateNull(columnIndex);
                 return;
             } else if (!textUpdateEmptyOK.contains(jdbcType)) {
                 // This will throw an exception for a non-char type, but allow a char-based type with
@@ -431,85 +600,98 @@ public class RowSetOps {
 		/*
 		 * SECOND - WRITING NON-NULL VALUES TO DATABASE BASED ON APPROPRIATE STRING CONVERSIONS
 		 */
-		switch (jdbcType) {
-	
-		case INTEGER:
-		case SMALLINT:
-		case TINYINT:
-			final int intValue = Integer.parseInt(_updatedValue);
-			_rowSet.updateInt(_columnName, intValue);
-			break;
-			
-		case BIGINT:
-			final long longValue = Long.parseLong(_updatedValue);
-			_rowSet.updateLong(_columnName, longValue);
-			break;
-			
-		case FLOAT:
-			final float floatValue = Float.parseFloat(_updatedValue);
-			_rowSet.updateFloat(_columnName, floatValue);
-			break;
-			
-		case DOUBLE:
-		//case NUMERIC: 
-		//case DECIMAL:
-		case REAL:
-			final double doubleValue = Double.parseDouble(_updatedValue);
-			_rowSet.updateDouble(_columnName, doubleValue);
-			break;
-			
-		case DECIMAL:
-		case NUMERIC:
-			_rowSet.updateBigDecimal(_columnName, new BigDecimal(_updatedValue));
-			break;
-			
-		case BOOLEAN:
-		case BIT:
-			// CONVERT THE GIVEN STRING TO BOOLEAN TYPE
-			final boolean boolValue = Boolean.valueOf(_updatedValue);
-			_rowSet.updateBoolean(_columnName, boolValue);
-			break;
-			
-		case DATE:
-// TODO Good to get rid of getSQLDate if possible.
-			if (_updatedValue.length() == 10) {
-				Date dateValue = SSCommon.getSQLDate(_updatedValue);
-				_rowSet.updateDate(_columnName, dateValue);
-			} else {
-			// 2020-12-01_BP: Might as well at least try to process a date that is other than 10 characters
-				Date dateValue = java.sql.Date.valueOf(_updatedValue);
-				_rowSet.updateDate(_columnName, dateValue);
-			}
-			break;
-			
-		case TIME:
-			Time timeValue = java.sql.Time.valueOf(_updatedValue);
-			_rowSet.updateTime(_columnName, timeValue);
-			break;
-			
-		case TIMESTAMP:
-		// TODO: We're not doing anything here
-		// TODO: Probably a better way to handle date to timestamp conversion. Formatter? Get rid of getSQLDate() if possible.
-			// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)
-			if (_updatedValue.length() == 10) {
-				Timestamp timestampValue = new Timestamp(SSCommon.getSQLDate(_updatedValue).getTime());
-				_rowSet.updateTimestamp(_columnName, timestampValue);
-			} else {
-			// Per ER email 2020-11-25, we weren't even trying to handle a legitimate timestamp
-				Timestamp timeStampValue = java.sql.Timestamp.valueOf(_updatedValue);
-				_rowSet.updateTimestamp(_columnName, timeStampValue);
-			}
-			break;
-			
-		case CHAR:
-		case VARCHAR:
-		case LONGVARCHAR:
-			_rowSet.updateString(_columnName, _updatedValue);
-			break;
 
-		default:
-			throw new IllegalStateException("switch cases out of sync");
-		} // end switch
+		//
+		// replace the switch statement
+		//
+		// TODO: Using updateObject may not be correct. I don't understand it well enough.
+		//       It is useful to use parseText(type,text) so that the code doesn't get stale.
+		//
+		_rowSet.updateObject(columnIndex, parseText(jdbcType, _updatedValue));
+
+
+//		switch (jdbcType) {
+//	
+//		case INTEGER:
+//		case SMALLINT:
+//		case TINYINT:
+//			final int intValue = Integer.parseInt(_updatedValue);
+//			_rowSet.updateInt(columnIndex, intValue);
+//			break;
+//			
+//		case BIGINT:
+//			final long longValue = Long.parseLong(_updatedValue);
+//			_rowSet.updateLong(columnIndex, longValue);
+//			break;
+//			
+//		case FLOAT:
+//			final float floatValue = Float.parseFloat(_updatedValue);
+//			_rowSet.updateFloat(columnIndex, floatValue);
+//			break;
+//			
+//		case DOUBLE:
+//		//case NUMERIC: 
+//		//case DECIMAL:
+//		case REAL:
+//			final double doubleValue = Double.parseDouble(_updatedValue);
+//			_rowSet.updateDouble(columnIndex, doubleValue);
+//			break;
+//			
+//		case DECIMAL:
+//		case NUMERIC:
+//			_rowSet.updateBigDecimal(columnIndex, new BigDecimal(_updatedValue));
+//			break;
+//			
+//		case BOOLEAN:
+//		case BIT:
+//			// CONVERT THE GIVEN STRING TO BOOLEAN TYPE
+//			final boolean boolValue = Boolean.valueOf(_updatedValue);
+//			_rowSet.updateBoolean(columnIndex, boolValue);
+//			break;
+//			
+//		case DATE:
+//// TODO Good to get rid of getSQLDate if possible.
+//			if (_updatedValue.length() == 10) {
+//				Date dateValue = SSCommon.getSQLDate(_updatedValue);
+//				_rowSet.updateDate(columnIndex, dateValue);
+//			} else {
+//			// 2020-12-01_BP: Might as well at least try to process a date that is other than 10 characters
+//				Date dateValue = java.sql.Date.valueOf(_updatedValue);
+//				_rowSet.updateDate(columnIndex, dateValue);
+//			}
+//			break;
+//			
+//		case TIME:
+//			Time timeValue = java.sql.Time.valueOf(_updatedValue);
+//			_rowSet.updateTime(columnIndex, timeValue);
+//			break;
+//			
+//		case TIMESTAMP:
+//		// TODO: We're not doing anything here
+//		// TODO: Probably a better way to handle date to timestamp conversion. Formatter? Get rid of getSQLDate() if possible.
+//			// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)
+//			if (_updatedValue.length() == 10) {
+//				Timestamp timestampValue = new Timestamp(SSCommon.getSQLDate(_updatedValue).getTime());
+//				_rowSet.updateTimestamp(columnIndex, timestampValue);
+//			} else {
+//			// Per ER email 2020-11-25, we weren't even trying to handle a legitimate timestamp
+//				Timestamp timeStampValue = java.sql.Timestamp.valueOf(_updatedValue);
+//				_rowSet.updateTimestamp(columnIndex, timeStampValue);
+//			}
+//			break;
+//			
+//		case CHAR:
+//		case VARCHAR:
+//		case LONGVARCHAR:
+//		case NCHAR:
+//		case NVARCHAR:
+//		case LONGNVARCHAR:
+//			_rowSet.updateString(columnIndex, _updatedValue);
+//			break;
+//
+//		default:
+//			throw new IllegalStateException("switch cases out of sync");
+//		} // end switch
 
 	} // end protected void updateColumnText(String _updatedValue, String _columnName)
 

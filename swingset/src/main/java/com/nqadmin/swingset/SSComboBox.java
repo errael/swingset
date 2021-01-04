@@ -831,7 +831,10 @@ public class SSComboBox extends SSBaseComboBox<Integer, String, Object>
 	 */
 	@Override
 	public void updateSSComponent() {
-		
+		if (true) {
+			updateSSComponentXXX();
+			return;
+		}
 		// TODO Modify this class similar to updateSSComponent() in SSFormattedTextField and only allow JDBC types that convert to Long or Integer
 		
 		try {

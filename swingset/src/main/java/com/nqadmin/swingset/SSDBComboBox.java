@@ -1541,6 +1541,10 @@ public class SSDBComboBox extends SSBaseComboBox<Long, Object, Object>
 	 */
 	@Override
 	public void updateSSComponent() {
+		if (true) {
+			updateSSComponentXXX();
+			return;
+		}
 		// TODO Modify this class similar to updateSSComponent() in SSFormattedTextField and only allow JDBC types that convert to Long or Integer
 		try {
 			// 2020-10-05_BP: If initialization is taking place then there won't be any mappings so don't try to update anything yet.

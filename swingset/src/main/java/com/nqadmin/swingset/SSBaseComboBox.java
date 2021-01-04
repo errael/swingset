@@ -51,10 +51,12 @@ import java.util.Objects;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.reflect.TypeToken;
 import com.nqadmin.swingset.models.AbstractComboBoxListSwingModel;
 import com.nqadmin.swingset.models.GlazedListsOptionMappingInfo;
 import com.nqadmin.swingset.models.OptionMappingSwingModel;
@@ -65,6 +67,9 @@ import com.nqadmin.swingset.utils.SSComponentInterface;
 import ca.odell.glazedlists.BasicEventList;
 import ca.odell.glazedlists.matchers.TextMatcherEditor;
 import ca.odell.glazedlists.swing.AutoCompleteSupport;
+
+import static com.nqadmin.swingset.datasources.JdbcDataTypeConversionTables.classToJdbcType;
+import static com.nqadmin.swingset.datasources.RowSetOps.parseText;
 
 // SSBaseComboBox.java
 //
@@ -121,6 +126,14 @@ public abstract class SSBaseComboBox<M,O,O2> extends JComboBox<SSListItem> imple
 		/** {@inheritDoc} */
 		@Override
 		public void actionPerformed(final ActionEvent ae) {
+			// If this is a combo navigator, SSSyncManager will have it's own listeners.
+			// This is just for keeping a bound column in sync.
+			// TODO: 1- should never be in here if comboNav? (GL issue?)
+			//       2- don't install listener if isComboNav() true
+			if (isComboBoxNavigator()) {
+				logger.debug("{}: Action Listener returning. No bound column.", () -> getColumnForLog());
+				return;
+			}
 
 			removeRowSetListener();
 
@@ -231,6 +244,9 @@ public abstract class SSBaseComboBox<M,O,O2> extends JComboBox<SSListItem> imple
 	 */
 	private static final Logger logger = LogManager.getLogger();
 
+	// The actual type of the mapping.
+	private Class<M> mappingType;
+
 	/**
 	 * When {@link #getAllowNull() } is true, this is the null item;
 	 * when false this is null. So {@link #setSelectedItem(java.lang.Object)
@@ -258,6 +274,21 @@ public abstract class SSBaseComboBox<M,O,O2> extends JComboBox<SSListItem> imple
 	 * The combo model.
 	 */
 	protected OptionMappingSwingModel<M,O,O2> optionModel;
+
+	/**
+	 * Return the actual type of the Mapping parameter.
+	 * @return the type
+	 */
+	final public Class<M> getMappingType() {
+		if (mappingType == null) {
+			@SuppressWarnings("unchecked")
+			TypeToken<M> typeToken = new TypeToken<M>(getClass()) { };
+			@SuppressWarnings("unchecked")
+			Class<M> t = (Class<M>) typeToken.getType();
+			mappingType = t;
+		}
+		return mappingType;
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	//
@@ -448,6 +479,52 @@ public abstract class SSBaseComboBox<M,O,O2> extends JComboBox<SSListItem> imple
 			setSelectedItem(item);
 		}
 	}
+
+	/**
+	 * Updates the value stored and displayed in the SwingSet component based on
+	 * getBoundColumnText()
+	 * <p>
+	 * Call to this method should be coming from SSCommon and should already have
+	 * the Component listener removed
+	 */
+	//@Override
+	public void updateSSComponentXXX() {
+		// TODO Modify this class similar to updateSSComponent() in SSFormattedTextField and only limit JDBC types accepted
+		try {
+			// If initialization is taking place then there won't be any mappings so don't try to update anything yet.
+			if (!hasItems()) {
+				return;
+			}
+
+			// SSDBComboBox will generally work with primary key column data queried from the database, which will generally be of data type long.
+			// SSComboBox is generally used with 2 or 4 byte integer columns.
+			final String boundColumnText = getBoundColumnText();
+
+			// LOGGING
+			logger.debug("{}: getBoundColumnText() - " + boundColumnText, () -> getColumnForLog());
+
+			// GET THE BOUND VALUE STORED IN THE ROWSET - may throw a NumberFormatException
+			M tVal = null;
+			if ((boundColumnText != null) && !boundColumnText.isEmpty()) {
+				// https://github.com/bpangburn/swingset/issues/46
+				@SuppressWarnings("unchecked")
+				M t = (M)parseText(classToJdbcType(getMappingType()), boundColumnText);
+				tVal = t;
+			}
+			M targetValue = tVal;
+			
+			// LOGGING
+			logger.debug(() -> String.format("%s: targetValue - %s",  getColumnForLog(), targetValue));
+			
+			// UPDATE COMPONENT
+			setSelectedMapping(targetValue);
+
+		} catch (final NumberFormatException nfe) {
+			JOptionPane.showMessageDialog(this, String.format(
+					"Encountered database value of '%s' for column [%s], which cannot be converted to a %s.", getBoundColumnText(), getColumnForLog(), getBoundColumnJDBCType()));
+			logger.error(getColumnForLog() + ": Number Format Exception.", nfe);
+		}
+	}
 	
 	/////////////////////////////////////////////////////////////////////////
 	//
@@ -477,14 +554,13 @@ public abstract class SSBaseComboBox<M,O,O2> extends JComboBox<SSListItem> imple
                 int keyCode = keyEvent.getKeyCode();
                 if (keyCode == KeyEvent.VK_UP) {
                 	logger.trace(() -> String.format("%s: Intercepted UP key.", getColumnForLog()));
-                    System.out.println("");
-                    if (getSelectedIndex() == 0) {
+                    if (SSBaseComboBox.super.getSelectedIndex() == 0) {
                         keyEvent.consume();
                         logger.debug(() -> String.format("%s: UP key consumed.", getColumnForLog()));
                     }
                 } else if (keyCode == KeyEvent.VK_DOWN) {
                 	logger.trace(() -> String.format("%s: Intercepted DOWN key.", getColumnForLog()));
-                    if (getSelectedIndex() == getModel().getSize()-1) {
+                    if (SSBaseComboBox.super.getSelectedIndex() == getModel().getSize()-1) {
                         keyEvent.consume();
                         logger.debug(() -> String.format("%s: DOWN key consumed.", getColumnForLog()));
                     }

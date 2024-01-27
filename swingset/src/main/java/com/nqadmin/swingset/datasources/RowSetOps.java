@@ -35,6 +35,11 @@
  *   Man "Bee" Vo
  *   Ernie R. Rael
  ******************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024, Ernie R. Rael. All rights reserved.
+ * ****************************************************************************/
 package com.nqadmin.swingset.datasources;
 
 import java.math.BigDecimal;
@@ -56,9 +61,13 @@ import javax.sql.RowSet;
 
 import org.apache.logging.log4j.Logger;
 
-import com.nqadmin.swingset.SSDataNavigator;
+import com.nqadmin.swingset.navigate.RowSetState;
+import com.nqadmin.swingset.utils.SSArray;
 import com.nqadmin.swingset.utils.SSCommon;
+import com.nqadmin.swingset.utils.SSComponentInterface;
 import com.nqadmin.swingset.utils.SSUtils;
+
+import static com.nqadmin.swingset.navigate.Utils.postRowSetModified;
 
 // RowSetOps.java
 //
@@ -366,6 +375,91 @@ public class RowSetOps {
 	 * change to the RowSet. A separate call is required to flush/commit the change
 	 * to the database.
 	 *
+	 * @param comp The SSComponent doing the update
+	 * @param _updatedValue Array
+	 * @throws NullPointerException thrown if null is not allowed
+	 * @throws SQLException  thrown if a database error is encountered
+	 */
+	public static void updateColumnArray(final SSComponentInterface comp, final SSArray _updatedValue) throws NullPointerException, SQLException {
+		updateColumnArray(comp, comp.getRowSet(), _updatedValue, comp.getBoundColumnName(), comp.getAllowNull());
+	}
+
+	/**
+	 * Method used by SwingSet component listeners to update the underlying
+	 * RowSet.
+	 * <p>
+	 * When the user changes/edits the SwingSet column this method propagates the
+	 * change to the RowSet. A separate call is required to flush/commit the change
+	 * to the database.
+	 *
+	 * @param comp The SSComponent doing the update
+	 * @param _rowSet RowSet on which to operate
+	 * @param _updatedValue Array
+	 * @param _columnName   name of the database column
+	 * @param _allowNull 	indicates if Component and underlying column can contain null values
+	 * @throws NullPointerException thrown if null is not allowed
+	 * @throws SQLException  thrown if a database error is encountered
+	 */
+	private static void updateColumnArray(final SSComponentInterface comp, final RowSet _rowSet, final SSArray _updatedValue, final String _columnName, final boolean _allowNull) throws NullPointerException, SQLException {
+		logger.debug("[" + _columnName + "]. Update to: " + _updatedValue + ". Allow null? [" + _allowNull + "]");
+
+		// On insert row, write null if updatedValue is null, and do not perform other checks. 
+		boolean did_update = false;
+		try {
+			if (_updatedValue == null && RowSetState.isInserting(_rowSet)) {
+				_rowSet.updateNull(_columnName);
+				did_update = true;
+				return;
+			}
+			
+			if (_updatedValue == null) {
+				if (_allowNull) {
+					_rowSet.updateNull(_columnName);
+					did_update = true;
+					return;
+				} else
+					// TODO: Use SSSQLNullPointerException
+					throw new NullPointerException("Null values are not allowed for this field.");
+			}
+			
+			_rowSet.updateArray(_columnName, _updatedValue);
+			did_update = true;
+		} finally {
+			if (did_update)
+				postRowSetModified(comp, _updatedValue);
+		}
+	}
+
+	/**
+	 * Method used by SwingSet component listeners to update the underlying
+	 * RowSet.
+	 * <p>
+	 * When the user changes/edits the SwingSet column this method propagates the
+	 * change to the RowSet. A separate call is required to flush/commit the change
+	 * to the database.
+	 *
+	 * @param comp The SSComponent doing the update
+	 * @param _updatedValue string to be type-converted as needed and updated in
+	 *                      underlying RowSet column
+	 * @throws NullPointerException thrown if null is not allowed
+	 * @throws SQLException  thrown if a database error is encountered
+	 * @throws NumberFormatException thrown if unable to parse a string to number format
+	 */
+	public static void updateColumnText(final SSComponentInterface comp, final String _updatedValue) throws NullPointerException, SQLException, NumberFormatException
+	{ 
+		updateColumnText(comp, comp.getRowSet(), _updatedValue,
+						 comp.getBoundColumnName(), comp.getAllowNull());
+	}
+
+	/**
+	 * Method used by SwingSet component listeners to update the underlying
+	 * RowSet.
+	 * <p>
+	 * When the user changes/edits the SwingSet column this method propagates the
+	 * change to the RowSet. A separate call is required to flush/commit the change
+	 * to the database.
+	 *
+	 * @param comp The SSComponent doing the update
 	 * @param _rowSet RowSet on which to operate
 	 * @param _updatedValue string to be type-converted as needed and updated in
 	 *                      underlying RowSet column
@@ -377,7 +471,8 @@ public class RowSetOps {
 	 */
 	// TODO: Eclipse is giving a Potential null pointer access, but we have assert(_updatedValue != null) so may be able to remove warning in future.
 	@SuppressWarnings("null")
-	public static void updateColumnText(final RowSet _rowSet, final String _updatedValue, final String _columnName, final boolean _allowNull) throws NullPointerException, SQLException, NumberFormatException {
+	private static void updateColumnText(final SSComponentInterface comp, final RowSet
+			_rowSet, final String _updatedValue, final String _columnName, final boolean _allowNull) throws NullPointerException, SQLException, NumberFormatException {
 
 		logger.debug("[" + _columnName + "]. Update to: " + _updatedValue + ". Allow null? [" + _allowNull + "]");
 
@@ -388,140 +483,157 @@ public class RowSetOps {
 			return;
 		}
 
-		// On insert row, write null if updatedValue is null or empty string, and do not perform other checks. 
-		if ((_updatedValue == null || _updatedValue.isEmpty()) && SSDataNavigator.isInserting(_rowSet)) {
-			_rowSet.updateNull(_columnName);
-			return;
-		}
+		boolean did_update = false;
+		try {
+			// On insert row, write null if updatedValue is null or empty string, and do not perform other checks.
+			if ((_updatedValue == null || _updatedValue.isEmpty()) && RowSetState.isInserting(_rowSet)) {
+				_rowSet.updateNull(_columnName);
+				did_update = true;
+				return;
+			}
+			
+			/*
+			* FIRST - NULL HANDLING:
+			*
+			* For character-based columns where _allowNull==true, we write null rather than an empty string
+			* We do this because a column could allow null, but have a UNIQUE constraint and each null
+			* should be unique.
+			*
+			* We want to enter this code under 3 conditions:
+			*  1. updateColumnText() is passed a null string
+			*  2. updateColumnText() is passed an empty string (any column type)
+			*  3. updateColumnText() is passed a 'blank' (whitespace) string for a non-character-based field
+			*     (e.g., "" or "   " for a double)
+			*
+			* If !_allowNull then a character based field with 0 or more blank spaced will be allowed
+			* and code will continue to the switch/case statement below.
+			*/
+			if (_updatedValue == null
+					|| _updatedValue.isEmpty()
+					|| (_updatedValue.trim().isEmpty() && !textUpdateEmptyOK.contains(jdbcType))) {
+				// TODO: Switch to isBlank) for Java 11+
+				// Java 11: || (_updatedValue.isBlank() && !textUpdateEmptyOK.contains(jdbcType))) {
+				
+				if (_allowNull) {
+					_rowSet.updateNull(_columnName);
+					did_update = true;
+					return;
+				} else if (!textUpdateEmptyOK.contains(jdbcType)) {
+					// This will throw an exception for a non-char type, but allow a char-based type with
+					// an empty string to continue to the switch/case below and write the empty string via
+					// _rowSet.updateString(_columnName, _updatedValue)
+					//
+					// Note that if there is a UNIQUE constraint on such a text column then repeatedly writing the same
+					// number (0 to N) spaces should throw an SQL exception (as should any other duplicate string)
 
-		/*
-		 * FIRST - NULL HANDLING:
-		 * 
-		 * For character-based columns where _allowNull==true, we write null rather than an empty string
-		 * We do this because a column could allow null, but have a UNIQUE constraint and each null
-		 * should be unique.
-		 * 
-		 * We want to enter this code under 3 conditions:
-		 *  1. updateColumnText() is passed a null string
-		 *  2. updateColumnText() is passed an empty string (any column type)
-		 *  3. updateColumnText() is passed a 'blank' (whitespace) string for a non-character-based field
-		 *     (e.g., "" or "   " for a double)
-		 *     
-		 * If !_allowNull then a character based field with 0 or more blank spaced will be allowed
-		 * and code will continue to the switch/case statement below.
-		 */
-       if (_updatedValue == null
-    		   || _updatedValue.isEmpty()
-               || (_updatedValue.trim().isEmpty() && !textUpdateEmptyOK.contains(jdbcType))) {
-    	    // TODO: Switch to isBlank) for Java 11+
-    	   	// Java 11: || (_updatedValue.isBlank() && !textUpdateEmptyOK.contains(jdbcType))) {
-
-            if (_allowNull) {
-                _rowSet.updateNull(_columnName);
-                return;
-            } else if (!textUpdateEmptyOK.contains(jdbcType)) {
-                // This will throw an exception for a non-char type, but allow a char-based type with
-            	// an empty string to continue to the switch/case below and write the empty string via
-            	// _rowSet.updateString(_columnName, _updatedValue)
-            	//
-            	// Note that if there is a UNIQUE constraint on such a text column then repeatedly writing the same 
-            	// number (0 to N) spaces should throw an SQL exception (as should any other duplicate string)
-                throw new NullPointerException("Null values are not allowed for this field.");
-            }
-        }
-		assert(_updatedValue != null);
-
-		/*
-		 * SECOND - WRITING NON-NULL VALUES TO DATABASE BASED ON APPROPRIATE STRING CONVERSIONS
-		 */
-		switch (jdbcType) {
-	
-		case INTEGER:
-		case SMALLINT:
-		case TINYINT:
-			final int intValue = Integer.parseInt(_updatedValue);
-			_rowSet.updateInt(_columnName, intValue);
-			break;
+					// TODO: Use SSSQLNullPointerException
+					throw new NullPointerException("Null values are not allowed for this field.");
+				}
+			}
+			assert(_updatedValue != null);
 			
-		case BIGINT:
-			final long longValue = Long.parseLong(_updatedValue);
-			_rowSet.updateLong(_columnName, longValue);
-			break;
+			/*
+			* SECOND - WRITING NON-NULL VALUES TO DATABASE BASED ON APPROPRIATE STRING CONVERSIONS
+			*/
+			//
+			// TODO: could probably use
+			//			_rowSet.updateObject(_columnName, _udpateValue)
+			//		 for everything except maybe for time/date related.
+			//
+			switch (jdbcType) {
 			
-		case FLOAT:
-			final float floatValue = Float.parseFloat(_updatedValue);
-			_rowSet.updateFloat(_columnName, floatValue);
-			break;
-			
-		case DOUBLE:
-		//case NUMERIC: 
-		//case DECIMAL:
-		case REAL:
-			final double doubleValue = Double.parseDouble(_updatedValue);
-			_rowSet.updateDouble(_columnName, doubleValue);
-			break;
-			
-		case DECIMAL:
-		case NUMERIC:
-			_rowSet.updateBigDecimal(_columnName, new BigDecimal(_updatedValue));
-			break;
-			
-		case BOOLEAN:
-		case BIT:
-			// CONVERT THE GIVEN STRING TO BOOLEAN TYPE
-			final boolean boolValue = Boolean.valueOf(_updatedValue);
-			_rowSet.updateBoolean(_columnName, boolValue);
-			break;
-			
-		case DATE:
+			case INTEGER:
+			case SMALLINT:
+			case TINYINT:
+				final int intValue = Integer.parseInt(_updatedValue);
+				_rowSet.updateInt(_columnName, intValue);
+				break;
+				
+			case BIGINT:
+				final long longValue = Long.parseLong(_updatedValue);
+				_rowSet.updateLong(_columnName, longValue);
+				break;
+				
+			case FLOAT:
+				final float floatValue = Float.parseFloat(_updatedValue);
+				_rowSet.updateFloat(_columnName, floatValue);
+				break;
+				
+			case DOUBLE:
+				//case NUMERIC:
+				//case DECIMAL:
+			case REAL:
+				final double doubleValue = Double.parseDouble(_updatedValue);
+				_rowSet.updateDouble(_columnName, doubleValue);
+				break;
+				
+			case DECIMAL:
+			case NUMERIC:
+				_rowSet.updateBigDecimal(_columnName, new BigDecimal(_updatedValue));
+				break;
+				
+			case BOOLEAN:
+			case BIT:
+				// CONVERT THE GIVEN STRING TO BOOLEAN TYPE
+				final boolean boolValue = Boolean.valueOf(_updatedValue);
+				_rowSet.updateBoolean(_columnName, boolValue);
+				break;
+				
+			case DATE:
 // TODO Good to get rid of getSQLDate if possible.
 // 2022-05-31_BP: Probably best to cast to a LocalDate and return if that fails.
 // 	Can convert to SQL Date if successful.
-			if (_updatedValue.length() == 10) {
-				Date dateValue = SSCommon.getSQLDate(_updatedValue);
-				_rowSet.updateDate(_columnName, dateValue);
+				if (_updatedValue.length() == 10) {
+					Date dateValue = SSCommon.getSQLDate(_updatedValue);
+					_rowSet.updateDate(_columnName, dateValue);
 // Per https://github.com/bpangburn/swingset/issues/141,
-// this else block is throwing an exception for every character pressed for the SSTextField date mask.				
+// this else block is throwing an exception for every character pressed for the SSTextField date mask.
 //			} else {
 //			// 2020-12-01_BP: Might as well at least try to process a date that is other than 10 characters
 //				Date dateValue = java.sql.Date.valueOf(_updatedValue);
 //				_rowSet.updateDate(_columnName, dateValue);
-			}
-			break;
-			
-		case TIME:
+				}
+				break;
+				
+			case TIME:
 // TODO: Probably a better way to handle date to timestamp conversion. Formatter? Get rid of getSQLDate() if possible.
 // 2022-05-31_BP: Probably best to cast to a LocalDateTime and return if that fails.
-//	Can convert to SQL Timestamp if successful.			
-			// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)			
-			Time timeValue = java.sql.Time.valueOf(_updatedValue);
-			_rowSet.updateTime(_columnName, timeValue);
-			break;
-			
-		case TIMESTAMP:
+//	Can convert to SQL Timestamp if successful.
+				// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)
+				Time timeValue = java.sql.Time.valueOf(_updatedValue);
+				_rowSet.updateTime(_columnName, timeValue);
+				break;
+				
+			case TIMESTAMP:
 // TODO: Probably a better way to handle date to timestamp conversion. Formatter? Get rid of getSQLDate() if possible.
 // 2022-05-31_BP: Probably best to cast to a LocalDateTime and return if that fails.
-//	Can convert to SQL Timestamp if successful.			
-			// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)
-			if (_updatedValue.length() == 10) {
-				Timestamp timestampValue = new Timestamp(SSCommon.getSQLDate(_updatedValue).getTime());
-				_rowSet.updateTimestamp(_columnName, timestampValue);
-			} else {
-			// Per ER email 2020-11-25, we weren't even trying to handle a legitimate timestamp
-				Timestamp timeStampValue = java.sql.Timestamp.valueOf(_updatedValue);
-				_rowSet.updateTimestamp(_columnName, timeStampValue);
-			}
-			break;
-			
-		case CHAR:
-		case VARCHAR:
-		case LONGVARCHAR:
-			_rowSet.updateString(_columnName, _updatedValue);
-			break;
+//	Can convert to SQL Timestamp if successful.
+				// CONVERT ANY 10 CHARACTER DATE (e.g., yyyy-mm-dd, mm/dd/yyyy to a date/time)
+				if (_updatedValue.length() == 10) {
+					Timestamp timestampValue = new Timestamp(SSCommon.getSQLDate(_updatedValue).getTime());
+					_rowSet.updateTimestamp(_columnName, timestampValue);
+				} else {
+					// Per ER email 2020-11-25, we weren't even trying to handle a legitimate timestamp
+					Timestamp timeStampValue = java.sql.Timestamp.valueOf(_updatedValue);
+					_rowSet.updateTimestamp(_columnName, timeStampValue);
+				}
+				break;
+				
+			case CHAR:
+			case VARCHAR:
+			case LONGVARCHAR:
+				_rowSet.updateString(_columnName, _updatedValue);
+				break;
+				
+			default:
+				throw new IllegalStateException("switch cases out of sync");
+			} // end switch
+			did_update = true;
+		} finally {
+			if (did_update)
+				postRowSetModified(comp, _updatedValue);
 
-		default:
-			throw new IllegalStateException("switch cases out of sync");
-		} // end switch
+		}
 
 	} // end protected void updateColumnText(String _updatedValue, String _columnName)
 

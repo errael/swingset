@@ -35,6 +35,11 @@
  *   Man "Bee" Vo
  *   Ernie R. Rael
  ******************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024, Ernie R. Rael. All rights reserved.
+ * ****************************************************************************/
 package com.nqadmin.swingset.utils;
 
 import java.awt.event.ActionListener;
@@ -73,6 +78,8 @@ import com.nqadmin.swingset.SSSlider;
 import com.nqadmin.swingset.datasources.RowSetOps;
 import com.nqadmin.swingset.formatting.SSFormattedTextField;
 
+import static com.nqadmin.swingset.navigate.Utils.postRowSetModifiedError;
+
 // SSCommon.java
 //
 // SwingSet - Open Toolkit For Making Swing Controls Database-Aware
@@ -100,7 +107,7 @@ import com.nqadmin.swingset.formatting.SSFormattedTextField;
  * A good example of this is SSDBComboBox, which may be used solely for
  * navigation.
  */
-public class SSCommon implements Serializable {
+public class SSCommon {
 
 	/**
 	 * Document listener provided for convenience for SwingSet Components that are
@@ -128,13 +135,8 @@ public class SSCommon implements Serializable {
 	 * changedUpdate() uses counters and SwingUtilities.invokeLater() to only update
 	 * the display on the last method called.
 	 */
-	public class SSDocumentListener implements DocumentListener, Serializable {
-
-		/**
-		 * unique serial id
-		 */
-		private static final long serialVersionUID = 2287696691641310793L;
-
+	public class SSDocumentListener implements DocumentListener, Serializable
+	{
 		/**
 		 * variables needed to consolidate calls to removeUpdate() and insertUpdate()
 		 * from DocumentListener
@@ -849,19 +851,6 @@ public class SSCommon implements Serializable {
 	}
 
 	/**
-	 * Updates the bound database column with the specified Array.
-	 * <p>
-	 * Used for SSList or other component where multiple items can be selected.
-	 *
-	 * @param _boundColumnArray Array to write to bound database column
-	 * @throws SQLException thrown if there is a problem writing the array to the
-	 *                      RowSet
-	 */
-	public void setBoundColumnArray(final SSArray _boundColumnArray) throws SQLException {
-		getRowSet().updateArray(getBoundColumnName(), _boundColumnArray);
-	}
-
-	/**
 	 * Sets the column index to which the Component is to be bound.
 	 *
 	 * @param _boundColumnIndex column index to which the Component is to be bound
@@ -961,33 +950,64 @@ public class SSCommon implements Serializable {
 	}
 
 	/**
+	 * Updates the bound database column with the specified Array.
+	 * <p>
+	 * Used for SSList or other component where multiple items can be selected.
+	 *
+	 * @param _boundColumnArray Array to write to bound database column
+	 * @throws SQLException thrown if there is a problem writing the array to the
+	 *                      RowSet
+	 */
+	public void setBoundColumnArray(final SSArray _boundColumnArray) throws SQLException {
+		logger.debug(() -> String.format("%s: %s", getColumnForLog(), _boundColumnArray));
+		boolean is_error = true;
+		try {
+			RowSetOps.updateColumnArray(getSSComponent(), _boundColumnArray);
+			is_error = false;
+		} catch(NullPointerException | SQLException ex) {
+			userErrorReporting(_boundColumnArray, ex);
+		} finally {
+			if (is_error)
+				postRowSetModifiedError(getSSComponent(), _boundColumnArray);
+		}
+	}
+
+	/**
 	 * Updates the bound database column with the specified String.
 	 *
 	 * @param _boundColumnText value to write to bound database column
 	 */
 	public void setBoundColumnText(final String _boundColumnText) {
-		logger.debug("{}: " + _boundColumnText, () -> getColumnForLog());
+		logger.debug(() -> String.format("%s: %s", getColumnForLog(), _boundColumnText));
+		boolean is_error = true;
 		try {
-			//getRowSet().updateColumnText(_boundColumnText, getBoundColumnName(), getAllowNull());
-			RowSetOps.updateColumnText(getRowSet(),_boundColumnText, getBoundColumnName(), getAllowNull());
-		} catch(final NullPointerException _npe) {
-			logger.warn(getBoundColumnName() + " - Null Pointer Exception.", _npe);
-			JOptionPane.showMessageDialog((JComponent)getSSComponent(),
-					"Null values are not allowed for " + getBoundColumnName(), "Null Exception", JOptionPane.ERROR_MESSAGE);
-
-		} catch(final SQLException _se) {
-			logger.warn(getBoundColumnName() + " - SQL Exception.", _se);
-			JOptionPane.showMessageDialog((JComponent)getSSComponent(),
-					"SQL Exception encountered for " + getBoundColumnName(), "SQL Exception", JOptionPane.ERROR_MESSAGE);
-
-		} catch(final NumberFormatException _pe) {
-			logger.warn(getBoundColumnName() + " - Number Format Exception.", _pe);
-			JOptionPane.showMessageDialog((JComponent)getSSComponent(),
-					"Number Format Exception encountered for " + getBoundColumnName() + " converting " + _boundColumnText + " to a number.",
-					"Number Format Exception", JOptionPane.ERROR_MESSAGE);
-
+			RowSetOps.updateColumnText(getSSComponent(), _boundColumnText);
+			is_error = false;
+		} catch(NullPointerException | SQLException | NumberFormatException ex) {
+			userErrorReporting(_boundColumnText, ex);
+		} finally {
+			if (is_error)
+				postRowSetModifiedError(getSSComponent(), _boundColumnText);
 		}
+	}
 
+	private void userErrorReporting(Object value, Exception ex)
+	{
+		String ex_title = null;
+		String ex_msg = null;
+		if (ex instanceof NullPointerException) {
+			ex_title = "Null Exception";
+			ex_msg = "Null values are not allowed for " + getBoundColumnName();
+		} else if (ex instanceof SQLException) {
+			ex_title = "SQL Exception";
+			ex_msg = "SQL Exception encountered for " + getBoundColumnName();
+		} else if (ex instanceof NumberFormatException) {
+			ex_title = "Number Format Exception";
+			ex_msg = "Number Format Exception encountered for " + getBoundColumnName() + " converting " + value + " to a number.";
+		}
+		logger.warn(getBoundColumnName() + " - " + ex_title + ".", ex);
+		JOptionPane.showMessageDialog((JComponent)getSSComponent(), ex_msg,
+									  ex_title, JOptionPane.ERROR_MESSAGE);
 	}
 
 	/**

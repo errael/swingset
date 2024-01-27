@@ -1,5 +1,5 @@
 /* *****************************************************************************
- * Copyright (C) 2021, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
+ * Copyright (C) 2024, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,79 +40,61 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2024, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package com.nqadmin.swingset.utils;
+package com.nqadmin.swingset.navigate;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.StackLocatorUtil;
+import javax.sql.RowSet;
 
 /**
  *
  * @author err
  */
-public class SSUtils {
-	private SSUtils() {}
+public class RowSetState
+{
+	private boolean inserting;
+	private NavigateActions navigateActions;
 
-	/**
-	 * This is similar to LogManager.getLogger(), except that
-	 * if getLogger fails then this method returns the root logger.
-	 * So this is suitable for UI components that might get instantiated
-	 * by a gui builder.
-	 *
-	 * See: https://github.com/bpangburn/swingset/pull/123
-	 * 
-	 * @return the Logger
-	 */
-	public static Logger getLogger() {
-		// NOTE: this can be re-implemented by examining
-		// new Throwable().getStackTrace();
-		Logger logger;
-		try {
-			return LogManager.getLogger(StackLocatorUtil.getCallerClass(2));
-		} catch(UnsupportedOperationException ex) {}
-		logger = LogManager.getRootLogger();
-		// Note: can check for root logger with
-		// logger.getName().isEmpty()
-		logger.error("Using RootLogger", new Throwable());
-		return logger;
+	// don't have to worry about concurrency, always EDT
+	private static final Map<RowSet,RowSetState> rowSetState = new WeakHashMap<>();
+
+	private static RowSetState getRowSetState(RowSet rs) {
+		return rowSetState.computeIfAbsent(rs, k -> new RowSetState());
 	}
 
-	/**
-	 * Returns an unmodifiable list containing an arbitrary number of elements.
-	 * This is not particularly efficient for small lists, but until java-9...
-	 * @param <T> type of elements in the list
-	 * @param args the elements of the list
-	 * @return list
-	 */
-	@SafeVarargs
-	public static <T> List<T> listOf(T... args) {
-		Object[] arr = Arrays.copyOf(args, args.length);
-		@SuppressWarnings("unchecked")
-		List<T> list = (List<T>) Collections.unmodifiableList(Arrays.asList(arr));
-		return list;
-	}
-	////////////////////////////////////////////////////////////////////////////
-	//
-	// Debug Support
-	//
-
-	/**
-	 * Return a unique name for an Object, for example "String@89AB".
-	 * Name is SimpleClassName followed by identityHashCode in hex.
-	 * Used primarily for debug messages.
-	 * @param o The Object
-	 * @return unique name for the object or "null"
-	 */
-	// TODO: put this in utils/SSUtil
-	public static String objectID(Object o) {
-		if (o == null) {
-			return "null";
+	static void setInserting(RowSet rs, boolean flag) {
+		if (rs != null) {
+			getRowSetState(rs).inserting = flag;
 		}
-		return String.format("%s@%X", o.getClass().getSimpleName(), System.identityHashCode(o));
 	}
 
+	static void setDataNavigator(RowSet rs, NavigateActions navigator) {
+		if (rs != null) {
+			getRowSetState(rs).navigateActions = navigator;
+		}
+	}
+
+	/**
+	 * Find out if the specified RowSet is on the insert row.
+	 * @param rs get state for this RowSet
+	 * @return true if on the insert row
+	 */
+	public static boolean isInserting(RowSet rs) {
+		return rs == null ? false : getRowSetState(rs).inserting;
+	}
+
+	/**
+	 * Find the data navigator for the specified RowSet.
+	 * <p>
+	 * Originally added to support SSComponentInterface.getSSDataNavigator(),
+	 * see discussion #93,
+	 * but may come in handy when implementing ActionMap interface.
+	 * @param rs get information for this RowSet
+	 * @return the associated data navigator
+	 */
+	public static NavigateActions getSSDataNavigator(RowSet rs) {
+		return rs == null ? null : getRowSetState(rs).navigateActions;
+	}
+	
 }

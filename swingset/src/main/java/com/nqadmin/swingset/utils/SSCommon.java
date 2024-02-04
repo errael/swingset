@@ -42,6 +42,7 @@
  * ****************************************************************************/
 package com.nqadmin.swingset.utils;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeListener;
@@ -58,8 +59,12 @@ import java.util.StringTokenizer;
 import javax.sql.RowSet;
 import javax.sql.RowSetEvent;
 import javax.sql.RowSetListener;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -77,6 +82,8 @@ import com.nqadmin.swingset.SSList;
 import com.nqadmin.swingset.SSSlider;
 import com.nqadmin.swingset.datasources.RowSetOps;
 import com.nqadmin.swingset.formatting.SSFormattedTextField;
+import com.nqadmin.swingset.navigate.NavigateActions;
+import com.nqadmin.swingset.navigate.NavigateActions.UndoRedo;
 
 import static com.nqadmin.swingset.navigate.Utils.postRowSetModifiedError;
 
@@ -738,6 +745,7 @@ public class SSCommon {
 	 */
 	protected void init() {
 		getSSComponent().configureTraversalKeys();
+		getSSComponent().setupUndoRedoKeys();
 		getSSComponent().customInit();
 	}
 	
@@ -1040,6 +1048,57 @@ public class SSCommon {
 		if (!inBinding) {
 			bind();
 		}
+	}
+
+	private static final String U = "SwingSetColumnUndo";
+	private static final String R = "SwingSetColumnRedo";
+	/**
+	 * Setup undo/redo action bindings for a component.
+	 * @param comp
+	 */
+	public static void setupUndoRedoKeys(SSComponentInterface comp) {
+		JComponent jc = (JComponent)comp;
+
+		//int cond = JComponent.WHEN_FOCUSED;
+		KeyStroke ksUndo = KeyStroke.getKeyStroke("ctrl Z");
+		KeyStroke ksRedo = KeyStroke.getKeyStroke("ctrl Y");
+		int cond = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
+		InputMap im = new InputMap();
+		im.put(ksUndo, U);
+		im.put(ksRedo, R);
+		im.setParent(jc.getInputMap(cond));
+		jc.setInputMap(cond, im);
+		ActionMap am = new ActionMap();
+		am.put(U, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				logger.trace("UNDO");
+				NavigateActions.undoRedo(comp, UndoRedo.UNDO);
+			}
+		});
+		am.put(R, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				logger.trace("REDO");
+				NavigateActions.undoRedo(comp, UndoRedo.REDO);
+			}
+		});
+		am.setParent(jc.getActionMap());
+		jc.setActionMap(am);
+	};
+
+	/**
+	 * Use the specified argument, which comes from an undo or redo command,
+	 * to set the components value.
+	 * Whether the command was undo or redo generally doesn't matter.
+	 * @param cmd undo or redo
+	 * @param value the new value
+	 */
+	public void setUndoRedoValue(UndoRedo cmd, Object value)
+	{
+		logger.debug(() -> String.format("%s: %s", cmd, value));
 	}
 
 	/**

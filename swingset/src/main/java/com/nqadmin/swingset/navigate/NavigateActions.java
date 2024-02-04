@@ -129,9 +129,17 @@ import static com.nqadmin.swingset.navigate.Utils.getLocalEventBus;
 public class NavigateActions
 {
 	// TODO: should this go into RowSetState?
-	private static final Map<RowSet, NavigateActions> rowSetActions = new WeakHashMap<>();
+	private static final Map<RowSet, NavigateActions> rowSetNavActions = new WeakHashMap<>();
 
 	private final Map<NavAction, Action> actions;
+
+	/** Undo/redo commands */
+	public enum UndoRedo {
+		/** Undo command */
+		UNDO,
+		/** Redo command */
+		REDO;
+	}
 
 	/**
 	 * Rowset Listener on the RowSet used by data navigator.
@@ -206,9 +214,7 @@ public class NavigateActions
 
 	}
 
-	/**
-	 * Log4j Logger for component
-	 */
+	/** Log4j Logger for component */
 	private static final Logger logger = SSUtils.getLogger();
 
 	/**
@@ -217,44 +223,25 @@ public class NavigateActions
 	 */
 	private boolean callExecute = true;
 
-	/**
-	 * Indicator to force confirmation of RowSet deletions.
-	 */
+	/** Indicator to force confirmation of RowSet deletions. */
 	private boolean confirmDeletes = true;
 	
-	/**
-	 * Row number for current record in RowSet.
-	 */
+	/** Row number for current record in RowSet. */
 	private int currentRow = 0;
 
-	/**
-	 * Container (frame or internal frame) which contains the navigator.
-	 */
+	/** Container (frame or internal frame) which contains the navigator. */
 	private SSDBNav dBNav = new SSDBNav() {};
 
-	/**
-	 * Indicator to allow/disallow deletions from the RowSet.
-	 */
+	/** Indicator to allow/disallow deletions from the RowSet. */
 	private boolean deletion = true;
 
-	/**
-	 * NavGroup event bus.
-	 */
-	private EventBus eventBus;
-
-	/**
-	 * Indicator to allow/disallow insertions to the RowSet.
-	 */
+	/** Indicator to allow/disallow insertions to the RowSet. */
 	private boolean insertion = true;
 
-	/**
-	 * Indicator that current row is dirty.
-	 */
+	/** Indicator that current row is dirty. */
 	private boolean isRowModified = false;
 
-	/**
-	 * Indicator to allow/disallow changes to the RowSet.
-	 */
+	/** Indicator to allow/disallow changes to the RowSet. */
 	private boolean modification = true;
 
 	/**
@@ -266,19 +253,13 @@ public class NavigateActions
 	 */
 	private SSDBComboBox navCombo = null;
 
-	/**
-	 * Number of rows in RowSet. Set to zero if next() method returns false.
-	 */
+	/** Number of rows in RowSet. Set to zero if next() method returns false. */
 	private int rowCount = 0;
 
-	/**
-	 * RowSet from which component will get/set values.
-	 */
+	/** RowSet from which component will get/set values. */
 	private RowSet rowSet = null;
 
-	/**
-	 * Listener on the RowSet used by data navigator.
-	 */
+	/** Listener on the RowSet used by data navigator. */
 	private final NavRowSetListener rowsetListener = new NavRowSetListener();
 	
 	/** Indicates if rowset listener is added (or removed) */
@@ -290,6 +271,12 @@ public class NavigateActions
 	/** Indicates if rownumber listener is added (or removed) */
 	private boolean rownumberListenerAdded = false;
 
+	/** NavGroup event bus. */
+	private EventBus eventBus;
+
+	/** Undo/redo this this rowset */
+	private final UndoRow undoRow;
+
 	//
 	// TODO:
 	//     For now, have the defaults here. In the future,
@@ -299,6 +286,12 @@ public class NavigateActions
 	//
 	private static final boolean V3_BUTTONS_DEFAULT = false;
 	private static final boolean AUTO_COMMIT_DEFAULT = false;
+
+	/** for package use */
+	static Logger getLogger()
+	{
+		return logger;
+	}
 
 	private static NavigateActions dummy;
 	private static NavigateActions dummy() {
@@ -316,7 +309,18 @@ public class NavigateActions
 	{
 		if (rowSet == null)
 			return dummy();
-		return rowSetActions.computeIfAbsent(rowSet, (rs) -> new NavigateActions(rs));
+		return rowSetNavActions.computeIfAbsent(rowSet, (rs) -> new NavigateActions(rs));
+	}
+
+	/**
+	 * Perform the specified undo/redo cmd on the specified component.
+	 * @param comp
+	 * @param cmd undo or redo
+	 */
+	public static void undoRedo(SSComponentInterface comp, UndoRedo cmd)
+	{
+		NavigateActions navActs = get(comp.getRowSet());
+		navActs.undoRow.doUndoRedo(comp, cmd);
 	}
 
 	/**
@@ -345,7 +349,7 @@ public class NavigateActions
 
 		rowNumberModel = new SpinnerNumberModel(1, 1, 1, 1);
 
-		// setSSRowSet will typically set the eventBus
+		undoRow = new UndoRow();
 		setupEventBus();
 
 		if (_rowSet != null)
@@ -361,19 +365,32 @@ public class NavigateActions
 	private void setupEventBus() {
 		if (eventBus == null) {
 			eventBus = getLocalEventBus(this, rowSet);
+			eventBus.register(new BusReceiver());
 		}
-		eventBus.register(new BusReceiver());
 	}
+
+	// TODO: Make sure there's no memory leak. must unregister BusReceiver.
+	//		 Could make sure any leak is minimized to single instance of
+	//		 BusReceiver class and not all NavigateActions.
+	//		 Make BusReceiver static, spin through rowSetNavActions.
+	//		 Track rowset collected (how?) and unregister.
 
 	// TODO: also have Set<SSComponentInterface> modifiedComponents
 	private final Set<SSComponentInterface> errorComponents = new HashSet<>();
 	class BusReceiver {
 		@Subscribe
-		public void handleRowDataChanged(RowSetModificationEvent ev) {
+		public void handleRowDataChanged(RowSetModificationEvent ev)
+		{
 			if (ev.matches(rowSet)) {
 				// Our RowSet's row has changed
-
+				
 				// TODO what about ev.getSource == null ?
+
+				try {
+					undoRow.addChange(ev);
+				} catch (SQLException ex) {
+					logger.error("Undo/redo exception", ex);
+				}
 				if(ev.isError()) {
 					errorComponents.add(ev.getSource());
 				} else {
@@ -384,6 +401,12 @@ public class NavigateActions
 				setRowModified(true);
 				updateActionState();
 			}
+		}
+
+		@Subscribe
+		public void handleFocusChangeEvent(FocusChangeEvent ev)
+		{
+			undoRow.focusChange(ev);
 		}
 	}
 
@@ -1263,7 +1286,7 @@ public class NavigateActions
 	{
 		Objects.requireNonNull(_rowSet);
 
-		rowSetActions.put(rowSet, this);
+		rowSetNavActions.put(rowSet, this);
 
 		// RESET INSERT FLAG THIS IS NEED IF USERS LEFT THE LAST ROWSET
 		// IN INSERTION MODE WITH OUT SAVING THE RECORD OR UNDOING THE INSERTION
@@ -1279,6 +1302,7 @@ public class NavigateActions
 		// TODO: what is this about?
 		//firePropertyChange("rowSet", oldValue, rowSet);
 
+		undoRow.clear();
 		setupEventBus();
 
 		// SEE IF THERE ARE ANY ROWS IN THE GIVEN SSROWSET
@@ -1348,6 +1372,7 @@ public class NavigateActions
 	private void setRowModified(boolean isDirty) {
 		isRowModified = isDirty;
 		if (!isDirty) {
+			undoRow.clear();
 			errorComponents.clear();
 		}
 	}

@@ -59,6 +59,7 @@ import javax.swing.KeyStroke;
 import java.sql.Connection;
 
 import com.nqadmin.swingset.SSDataNavigator;
+import com.nqadmin.swingset.navigate.NavigateActions.UndoRedo;
 
 // SSComponentInterface.java
 //
@@ -236,6 +237,7 @@ public interface SSComponentInterface {
 	 *
 	 * @return the data type of the bound column
 	 */
+	// TODO: deprecate
 	default int getBoundColumnType() {
 		return getSSCommon().getBoundColumnType();
 	}
@@ -605,5 +607,21 @@ public interface SSComponentInterface {
 	 * removal (and subsequent restoration) of the component's value change listener.
 	 */
 	void updateSSComponent();
+
+	/**
+	 * Setup action bindings for undo/redo.
+	 */
+	default void setupUndoRedoKeys() {
+		SSCommon.setupUndoRedoKeys(this);
+	};
+
+	/**
+	 * Set the component to the new value.
+	 * @param cmd undo or redo
+	 * @param value new value
+	 */
+	default void setUndoRedoValue(UndoRedo cmd, Object value) {
+		getSSCommon().setUndoRedoValue(cmd, value);
+	};
 
 }

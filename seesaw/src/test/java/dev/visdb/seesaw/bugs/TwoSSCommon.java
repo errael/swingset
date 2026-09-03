@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import dev.visdb.seesaw.core.Image;
+import dev.visdb.seesaw.SsImage;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,7 +66,7 @@ public class TwoSSCommon {
 
   @SuppressWarnings("serial")
 
-  class TestImage extends Image {
+  class TestImage extends SsImage {
     @SuppressWarnings("unused")
     Object xxx;
 

@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright (C) 2003-2021, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
+/* *****************************************************************************
+ * Copyright (C) 2024, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,37 +34,46 @@
  *   Diego Gil
  *   Man "Bee" Vo
  *   Ernie R. Rael
- ******************************************************************************/
-package dev.visdb.seesaw.utils;
+ * ****************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024, Ernie R. Rael. All rights reserved.
+ * ****************************************************************************/
+package dev.visdb.seesaw.datasources;
 
 /**
- * Various Enumerations for SwingSet
+ * Type conversion Exception.
  */
-public class SSEnums {
+@SuppressWarnings("serial")
+public class SqlConversionException extends SqlException {
   /**
-   * Enumeration for navigation buttons.
+   * Type conversion error.
+   * @param reason
    */
-  public enum Navigation {
-    /** Go to the first record in the RowSet */
-    First(3),
-    /** Go to the last record in the RowSet */
-    Last(4),
-    /** Go to the next record in the RowSet */
-    Next(1),
-    /** Go to the previous record in the RowSet */
-    Previous(2);
+  public SqlConversionException(String reason) {
+    super(reason);
+  }
 
-    private final int value;
+  /**
+   * Type conversion error.
+   */
+  public SqlConversionException() {}
 
-    Navigation(int newValue) {
-      value = newValue;
-    }
+  /**
+   * Type conversion error.
+   * @param cause
+   */
+  public SqlConversionException(Throwable cause) {
+    super(cause);
+  }
 
-    /**
-     * @return integer corresponding to enumerated value
-     */
-    public int getValue() {
-      return value;
-    }
+  /**
+   * Type conversion error.
+   * @param reason
+   * @param cause
+   */
+  public SqlConversionException(String reason, Throwable cause) {
+    super(reason, cause);
   }
 }

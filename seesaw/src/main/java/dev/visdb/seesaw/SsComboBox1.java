@@ -1,6 +1,5 @@
 /* *****************************************************************************
- * Copyright (C) 2024, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
- * All rights reserved.
+ * Copyright (C) 2025, Ernie R Rael. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,53 +26,74 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * Contributors:
- *   Prasanth R. Pasala
- *   Brian E. Pangburn
- *   Diego Gil
- *   Man "Bee" Vo
- *   Ernie R. Rael
  * ****************************************************************************/
-/* *****************************************************************************
- * The conditions in the above copyright notice apply to this copyright notice.
- * Additions and modifications made by Ernie R. Rael are
- * copyright (C) 2024, Ernie R. Rael. All rights reserved.
- * ****************************************************************************/
-package dev.visdb.seesaw.datasources;
+package dev.visdb.seesaw;
+
+import java.util.Optional;
+
+import dev.visdb.seesaw.models.Item1;
 
 /**
- * Specified type not handled.
+ * A ComboBox that only has a single displayValue.
+ * See {@link SsComboBox2} for documentation.
+ *
+ * @param <K> key type
+ * @param <D> displayValue type
  */
 @SuppressWarnings("serial")
-public class SSSQLUnhandledTypeException extends SSSQLException {
+public class SsComboBox1<K, D> extends SsComboBox2<K, D, Object> {
   /**
-   * Unhandled type.
-   * @param reason reason
+   * Builder; see {@link SsComboBox2.Builder}.
+   * @param <K>
+   * @param <D>
+   * @param <T>
    */
-  public SSSQLUnhandledTypeException(String reason) {
-    super(reason);
+  public abstract static class AbstractBuilder<K, D, T extends AbstractBuilder<K, D, T>>
+      extends SsComboBox2.AbstractBuilder<K, D, Object, T> {}
+
+  /**
+   * Builder.
+   * @param <K>
+   * @param <D>
+   */
+  public static class Builder<K, D> extends AbstractBuilder<K, D, Builder<K, D>> {
+    /** self type idiom */
+    @Override
+    protected Builder<K, D> self() {
+      return this;
+    }
+
+    /** create SsComboBox1 */
+    @Override
+    public SsComboBox1<K, D> build() {
+      return new SsComboBox1<>(this);
+    }
   }
 
   /**
-   * Unhandled type.
+   * @param builder
    */
-  public SSSQLUnhandledTypeException() {}
-
-  /**
-   * Unhandled type.
-   * @param cause cause
-   */
-  public SSSQLUnhandledTypeException(Throwable cause) {
-    super(cause);
+  protected SsComboBox1(AbstractBuilder<K, D, ?> builder) {
+    super(builder);
   }
 
   /**
-   * Unhandled type.
-   * @param reason reason
-   * @param cause cause
+   * Creates an object of ComboBox with type params of Object.
+   * Default: see {@link SsComboBox2}.
    */
-  public SSSQLUnhandledTypeException(String reason, Throwable cause) {
-    super(reason, cause);
+  // TODO: this fails because "K" is not concrete.
+  public SsComboBox1() {
+    this(new SsComboBox1.Builder<>() {});
+  }
+
+  /**
+   * Return a copy of the chosenItem with methods getKey(), getDisplayValue().
+   */
+  @Override
+  public Item1<K, D> getChosenItem() {
+    Optional<Item1<K, D>> item = getChosenItem((remodel, lItem) -> {
+      return new Item1<>(remodel.getKey(lItem), remodel.getDisplayValue(lItem));
+    });
+    return item.orElse(new Item1<>(null, null));
   }
 }

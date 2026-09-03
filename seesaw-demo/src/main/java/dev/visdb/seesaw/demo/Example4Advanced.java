@@ -57,7 +57,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 
-import dev.visdb.seesaw.core.ComboBox2.MissingDisplayValueControl;
+import dev.visdb.seesaw.SsComboBox2.MissingDisplayValueControl;
 import dev.visdb.seesaw.models.SSListItem;
 import dev.visdb.seesaw.models.SSListItemFormat;
 

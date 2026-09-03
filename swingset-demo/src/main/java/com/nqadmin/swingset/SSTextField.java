@@ -44,8 +44,7 @@ package com.nqadmin.swingset;
 
 import javax.sql.RowSet;
 
-import dev.visdb.seesaw.core.TextField;
-
+import dev.visdb.seesaw.SsTextField;
 import dev.visdb.seesaw.navigate.RowsModel;
 
 import static dev.visdb.seesaw.utils.SSUtils.findRowsModel;
@@ -54,7 +53,7 @@ import static dev.visdb.seesaw.utils.SSUtils.findRowsModel;
  * SSTextField extends the JTextField.
  */
 @SuppressWarnings("serial")
-public class SSTextField extends TextField {
+public class SSTextField extends SsTextField {
   /**
    * Constructs a new, empty text field.
    */

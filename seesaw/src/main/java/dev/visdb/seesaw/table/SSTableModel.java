@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core.table;
+package dev.visdb.seesaw.table;
 
 import java.awt.Component;
 import java.lang.System.Logger;

@@ -98,7 +98,7 @@ import static dev.visdb.seesaw.navigate.RowsAction.*;
 // a navigation automatically commits any changes. Once navigation takes place
 // changes can't be reverted using Undo button (has to be done manually by the user).
 @SuppressWarnings("serial")
-public class DataNavigator extends JPanel {
+public class SsDataNavigator extends JPanel {
   /** The RowSet's actions/models for the buttons are in here. */
   private RowsModel rowsModel;
 
@@ -116,7 +116,7 @@ public class DataNavigator extends JPanel {
    *
    * @param rowsModel   the RowsModel to which the navigator is bound to
    */
-  public DataNavigator(RowsModel rowsModel) {
+  public SsDataNavigator(RowsModel rowsModel) {
     this(rowsModel, Lines.ONE, null);
   }
 
@@ -126,7 +126,7 @@ public class DataNavigator extends JPanel {
    * @param rowsModel   the RowsModel to which the navigator is bound to
    * @param nLines      number of display lines for the navigator
    */
-  public DataNavigator(RowsModel rowsModel, Lines nLines) {
+  public SsDataNavigator(RowsModel rowsModel, Lines nLines) {
     this(rowsModel, nLines, null);
   }
 
@@ -137,7 +137,7 @@ public class DataNavigator extends JPanel {
    * @param rowsModel   the RowsModel to which the navigator is bound to
    * @param _buttonSize the size to which the button on navigator have to be set
    */
-  public DataNavigator(RowsModel rowsModel, Dimension _buttonSize) {
+  public SsDataNavigator(RowsModel rowsModel, Dimension _buttonSize) {
     this(rowsModel, Lines.ONE, _buttonSize);
   }
 
@@ -150,7 +150,7 @@ public class DataNavigator extends JPanel {
    * @param nLines      number of display lines for the navigator
    */
   @SuppressWarnings({"LeakingThisInConstructor", "OverridableMethodCallInConstructor"})
-  public DataNavigator(RowsModel rowsModel, Lines nLines, Dimension _buttonSize) {
+  public SsDataNavigator(RowsModel rowsModel, Lines nLines, Dimension _buttonSize) {
     Objects.requireNonNull(rowsModel);
     rowNumberSpinner = new RowNumberSpinner(rowsModel);
     uiComponents = uiComponents();

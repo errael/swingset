@@ -43,37 +43,37 @@
 package dev.visdb.seesaw.datasources;
 
 /**
- * Type conversion Exception.
+ * Specified type not handled.
  */
 @SuppressWarnings("serial")
-public class SSSQLConversionException extends SSSQLException {
+public class SqlUnhandledTypeException extends SqlException {
   /**
-   * Type conversion error.
-   * @param reason
+   * Unhandled type.
+   * @param reason reason
    */
-  public SSSQLConversionException(String reason) {
+  public SqlUnhandledTypeException(String reason) {
     super(reason);
   }
 
   /**
-   * Type conversion error.
+   * Unhandled type.
    */
-  public SSSQLConversionException() {}
+  public SqlUnhandledTypeException() {}
 
   /**
-   * Type conversion error.
-   * @param cause
+   * Unhandled type.
+   * @param cause cause
    */
-  public SSSQLConversionException(Throwable cause) {
+  public SqlUnhandledTypeException(Throwable cause) {
     super(cause);
   }
 
   /**
-   * Type conversion error.
-   * @param reason
-   * @param cause
+   * Unhandled type.
+   * @param reason reason
+   * @param cause cause
    */
-  public SSSQLConversionException(String reason, Throwable cause) {
+  public SqlUnhandledTypeException(String reason, Throwable cause) {
     super(reason, cause);
   }
 }

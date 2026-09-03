@@ -94,7 +94,7 @@ import dev.visdb.seesaw.models.SSCollection;
 import dev.visdb.seesaw.models.SSDbArray;
 import dev.visdb.seesaw.navigate.RowsModel;
 import dev.visdb.seesaw.utils.CentralLookup;
-import dev.visdb.seesaw.utils.DataNavigator;
+import dev.visdb.seesaw.utils.SsDataNavigator;
 import dev.visdb.seesaw.utils.JStuff;
 import dev.visdb.seesaw.utils.SSComponent;
 
@@ -373,7 +373,7 @@ public class TestBaseComponents extends JFrame {
       rowset.execute();
       rowsModel = RowsModel.create(rowset, null);
       // navigator = new SSDataNavigator(rowsModel);
-      navigator = new SSDataNavigator(rowsModel, DataNavigator.Lines.TWO);
+      navigator = new SSDataNavigator(rowsModel, SsDataNavigator.Lines.TWO);
     } catch (final SQLException se) {
       logger.log(Level.ERROR, "SQL Exception.", se);
     }

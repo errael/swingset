@@ -46,15 +46,15 @@ package dev.visdb.seesaw.datasources;
  * Internal error.
  */
 @SuppressWarnings("serial")
-public class SSSQLInternalException extends SSSQLException {
+public class SqlInternalException extends SqlException {
   /** Internal error. */
-  public SSSQLInternalException() {}
+  public SqlInternalException() {}
 
   /**
    * Internal error.
    * @param message
    */
-  public SSSQLInternalException(String message) {
+  public SqlInternalException(String message) {
     super(message);
   }
 
@@ -63,7 +63,7 @@ public class SSSQLInternalException extends SSSQLException {
    * @param message
    * @param cause
    */
-  public SSSQLInternalException(String message, Throwable cause) {
+  public SqlInternalException(String message, Throwable cause) {
     super(message, cause);
   }
 
@@ -71,7 +71,7 @@ public class SSSQLInternalException extends SSSQLException {
    * Internal error.
    * @param cause
    */
-  public SSSQLInternalException(Throwable cause) {
+  public SqlInternalException(Throwable cause) {
     super(cause);
   }
 }

@@ -70,15 +70,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import dev.visdb.seesaw.core.CheckBox;
-import dev.visdb.seesaw.core.ComboBox1;
-import dev.visdb.seesaw.core.DBComboBox2;
-import dev.visdb.seesaw.core.Image;
-import dev.visdb.seesaw.core.Label;
-import dev.visdb.seesaw.core.List1;
-import dev.visdb.seesaw.core.Slider;
-import dev.visdb.seesaw.core.TextArea;
-import dev.visdb.seesaw.core.TextField;
+import dev.visdb.seesaw.SsCheckBox;
+import dev.visdb.seesaw.SsComboBox1;
+import dev.visdb.seesaw.SsDbComboBox2;
+import dev.visdb.seesaw.SsImage;
+import dev.visdb.seesaw.SsLabel;
+import dev.visdb.seesaw.SsList1;
+import dev.visdb.seesaw.SsSlider;
+import dev.visdb.seesaw.SsTextArea;
+import dev.visdb.seesaw.SsTextField;
 import dev.visdb.seesaw.datasources.DbOps;
 import dev.visdb.seesaw.datasources.products.DbOpsBase;
 import dev.visdb.seesaw.datasources.products.DbOpsCreator;
@@ -91,7 +91,7 @@ import dev.visdb.seesaw.models.SSCollection;
 import dev.visdb.seesaw.models.SSDbArray;
 import dev.visdb.seesaw.navigate.RowsModel;
 import dev.visdb.seesaw.utils.CentralLookup;
-import dev.visdb.seesaw.utils.DataNavigator;
+import dev.visdb.seesaw.utils.SsDataNavigator;
 import dev.visdb.seesaw.utils.JStuff;
 import dev.visdb.seesaw.utils.SSComponent;
 import dev.visdb.seesaw.utils.SyncManager;
@@ -108,8 +108,8 @@ import static java.lang.System.Logger.Level.*;
  * There is a separate example screen to demonstrate the
  * Formatted SwingSet Components.
  * <p>
- * IMPORTANT: The relationship of the DBComboBox2 and RowSet queries can have a
- * large negative impact on performance. See {@link SyncManager} for an
+IMPORTANT: The relationship of the SsDbComboBox2 and RowSet queries can have a
+large negative impact on performance. See {@link SyncManager} for an
  * explanation.
  */
 
@@ -273,42 +273,42 @@ public class TestBaseComponents extends JFrame {
   // For a generic class with a generic builder, simplify by creating a wrapper
   // class. See declarations for cmbSSComboBox, cmbEnumSSComboBox following.
   // See SSComboBox for an example that exposes Buidler.
-  static class MyComboBox extends ComboBox1<Integer, String> {
+  static class MyComboBox extends SsComboBox1<Integer, String> {
     MyComboBox() {
-      super(new ComboBox1.Builder<Integer, String>() {});
+      super(new SsComboBox1.Builder<Integer, String>() {});
     }
   }
 
-  ComboBox1<Integer, String> cmbSSComboBox = new ComboBox1.Builder<Integer, String>() {}.build();
+  SsComboBox1<Integer, String> cmbSSComboBox = new SsComboBox1.Builder<Integer, String>() {}.build();
   MyComboBox cmbEnumSSComboBox = new MyComboBox();
-  TextField txtTestPK = new TextField();
-  CheckBox chkSSCheckBox = new CheckBox("labeled checkbox");
-  DBComboBox2<Long, Object, Object> cmbSSDBComboBox;
-  Image imgImage = new Image();
-  Label lblSSLabel2 = new Label();
-  final List1<Object, String> lstSSList;
-  final List1<Object, String> lstSSList2;
-  Slider sliSSSlider = new Slider();
-  TextArea txtSSTextArea = new TextArea();
-  TextField txtSSTextField = new TextField();
-  TextField txtSSTextFieldB = new TextField();
+  SsTextField txtTestPK = new SsTextField();
+  SsCheckBox chkSSCheckBox = new SsCheckBox("labeled checkbox");
+  SsDbComboBox2<Long, Object, Object> cmbSSDBComboBox;
+  SsImage imgImage = new SsImage();
+  SsLabel lblSSLabel2 = new SsLabel();
+  final SsList1<Object, String> lstSSList;
+  final SsList1<Object, String> lstSSList2;
+  SsSlider sliSSSlider = new SsSlider();
+  SsTextArea txtSSTextArea = new SsTextArea();
+  SsTextField txtSSTextField = new SsTextField();
+  SsTextField txtSSTextFieldB = new SsTextField();
   DbDatePicker dpDatePicker = new DbDatePicker();
 
   /**
    * database component declarations
    */
   Connection connection = null;
-  DataNavigator navigator = null;
+  SsDataNavigator navigator = null;
   RowsModel rowsModel;
 
   /**
    * combo navigator and sync manger
    */
-  final DBComboBox2<Long, Object, Object> cmbSSDBComboNav; // DBComboBox2 used just for navigation
+  final SsDbComboBox2<Long, Object, Object> cmbSSDBComboNav; // SsDbComboBox2 used just for navigation
   final SyncManager<Long> syncManager;
 
   /**
-   * Method to obtain proper data structure/model for List1 based on database used
+   * Method to obtain proper data structure/model for SsList1 based on database used
    * @return collection model to use for lists based on underlying database
    */
   @SuppressWarnings("unused")
@@ -335,12 +335,12 @@ public class TestBaseComponents extends JFrame {
     // initialize some dynamic information
     hints = _hints;
 
-    lstSSList = new List1<>(getCollectionModel());
+    lstSSList = new SsList1<>(getCollectionModel());
     //lstSSList = new SSList(JDBCType.INTEGER); // SSCollection.getSuitableDbCollection()
 
     // lstSSList2 = new SSList(new SSDbStringCollection(
     // 		JDBCType.INTEGER, SSDbStringCollection.COMMA_SEP));
-    lstSSList2 = new List1<>(JDBCType.INTEGER); // auto pick for String column
+    lstSSList2 = new SsList1<>(JDBCType.INTEGER); // auto pick for String column
 
     populateCompInfo();
     //activeComps.remove(DATE_PICKER);
@@ -381,7 +381,7 @@ public class TestBaseComponents extends JFrame {
       rowset.execute();
       rowsModel = RowsModel.create(rowset, null);
       // navigator = new SSDataNavigator(rowsModel);
-      navigator = new DataNavigator(rowsModel, DataNavigator.Lines.TWO);
+      navigator = new SsDataNavigator(rowsModel, SsDataNavigator.Lines.TWO);
     } catch (final SQLException se) {
       logger.log(Level.ERROR, "SQL Exception.", se);
     }
@@ -401,7 +401,7 @@ public class TestBaseComponents extends JFrame {
       // setup navigator query
       final String query = "SELECT * FROM swingset_base_test_data;";
       //= (connection, query, "swingset_base_test_pk", "swingset_base_test_pk");
-      cmbSSDBComboNav = new DBComboBox2.Builder<Long, Object, Object>() {}
+      cmbSSDBComboNav = new SsDbComboBox2.Builder<Long, Object, Object>() {}
                             .connection(connection)
                             .query(query)
                             .primaryKeyColumnName("swingset_base_test_pk")
@@ -451,7 +451,7 @@ public class TestBaseComponents extends JFrame {
     if (activeComps.contains(DB_COMBO)) {
       final String dbComboQuery = "SELECT * FROM part_data;";
       // (connection, dbComboQuery, "part_id", "part_name");
-      cmbSSDBComboBox = new DBComboBox2.Builder<Long, Object, Object>() {}
+      cmbSSDBComboBox = new SsDbComboBox2.Builder<Long, Object, Object>() {}
                             .connection(connection)
                             .query(dbComboQuery)
                             .primaryKeyColumnName("part_id")

@@ -49,7 +49,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import dev.visdb.seesaw.core.TextField;
+import dev.visdb.seesaw.SsTextField;
 import dev.visdb.seesaw.datasources.products.DbSupportFactory;
 import dev.visdb.seesaw.mock.H2;
 import dev.visdb.seesaw.mock.TestLogging;
@@ -190,7 +190,7 @@ public class RowSetOpsTest {
   @SuppressWarnings("LoggerStringConcat")
   private void updateColumnText(String col, String sVal, Object val) throws Exception {
     logger.log(INFO, "    " + col);
-    SSComponent comp = new TextField(g_rm, col);
+    SSComponent comp = new SsTextField(g_rm, col);
     RowSetOps.updateColumnText(comp, sVal);
     //g_rm.commit(); in conjunction with skipping enabled check.
     g_rm.getAction(RowsAction.ACT_COMMIT).actionPerformed(null);
@@ -301,9 +301,9 @@ public class RowSetOpsTest {
     String sDate = "2222-02-22";
     String sTime = "12:12:12";
     String sTimestamp = "2222-02-22 22:22:22";
-    SSComponent comp1 = new TextField(rowsModel, "c_date");
-    SSComponent comp2 = new TextField(rowsModel, "c_time");
-    SSComponent comp3 = new TextField(rowsModel, "c_timestamp");
+    SSComponent comp1 = new SsTextField(rowsModel, "c_date");
+    SSComponent comp2 = new SsTextField(rowsModel, "c_time");
+    SSComponent comp3 = new SsTextField(rowsModel, "c_timestamp");
     RowSetOps.updateColumnText(comp1, sDate);
     RowSetOps.updateColumnText(comp2, sTime);
     RowSetOps.updateColumnText(comp3, sTimestamp);

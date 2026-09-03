@@ -38,109 +38,116 @@
 /* *****************************************************************************
  * The conditions in the above copyright notice apply to this copyright notice.
  * Additions and modifications made by Ernie R. Rael are
- * copyright (C) 2025-2026, Ernie R. Rael. All rights reserved.
+ * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.util.EnumSet;
 import java.util.EventListener;
 
-import javax.swing.Icon;
-import javax.swing.JLabel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import dev.visdb.seesaw.navigate.RowsModel;
 import dev.visdb.seesaw.utils.JStuff;
 import dev.visdb.seesaw.utils.SSComponent;
 import dev.visdb.seesaw.utils.SSUtils;
 
+import static dev.visdb.seesaw.datasources.ConvertType.assertConvertFromJdbcType;
 import static dev.visdb.seesaw.utils.JStuff.sf;
+import static java.sql.JDBCType.*;
 
 /**
- * Used to display database values in a read-only JLabel.
- * By default, programmatic changes to the label are not propagated,
- * except of course to set a label's value from a RowSet.
+ * Used to link a JSlider to a numeric column in a database.
  */
 @SuppressWarnings("serial")
-public class Label extends JLabel implements SSComponent {
-  /** ugh */
-  // TODO: Come up with general way to allow selective prop change disable.
-  protected boolean allowPropertyChangePropagation = false;
+public class SsSlider extends JSlider implements SSComponent {
   /**
-   * Listener for label changed externally; propagate the value to the
-   * database column. By default not enabled.
+   * Listener(s) for the component's value used to propagate changes back to bound
+   * text field.
    */
-  protected class LabelListener implements PropertyChangeListener {
-    /**
-     * Propogate "text" property change to database.
-     * {@inheritDoc}
-     */
+  protected class SliderListener implements ChangeListener {
+    /** {@inheritDoc } */
     @Override
-    public void propertyChange(PropertyChangeEvent pce) {
-      if (!allowPropertyChangePropagation)
-        return;
-      if (!"text".equals(pce.getPropertyName()))
+    public void stateChanged(ChangeEvent ce) {
+      // While adjusting don't need to update the database.
+      if (getValueIsAdjusting())
         return;
 
       try {
-        dbChange(() -> setColumnText(getText()));
+        dbChange(() -> setColumnObject(getValue()));
       } catch (SQLException ex) {
         logger.log(Level.ERROR, (String) null, ex);
       }
     }
-  } // end protected class LabelListener
 
-  /** Log4j Logger for component */
+  } // end protected class SliderListener implements ChangeListener, Serializable
+
+  /** Logger for component */
   private static final Logger logger = JStuff.getLogger();
 
   /**
-   * Empty constructor needed for deserialization. Creates a Label instance with
-   * no image and no text.
+   * Empty constructor needed for deserialization. Creates a horizontal slider
+   * with the range 0 to 100.
    */
-  public Label() {
+  public SsSlider() {
     finishSSCommon();
   }
 
   /**
-   * Creates a Label instance with the specified image.
+   * Creates a slider using the specified orientation with the range 0 to 100.
    *
-   * @param image specified image for label
+   * @param orientation slider spatial orientation
    */
-  public Label(Icon image) {
-    super(image);
+  public SsSlider(int orientation) {
+    super(orientation);
     finishSSCommon();
   }
 
   /**
-   * Creates a Label instance with the specified image and horizontal alignment.
+   * Creates a horizontal slider using the specified min and max.
    *
-   * @param image               specified image for label
-   * @param horizontalAlignment horizontal alignment
+   * @param min minimum slider value
+   * @param max maximum slider value
    */
-  public Label(Icon image, int horizontalAlignment) {
-    super(image, horizontalAlignment);
+  public SsSlider(int min, int max) {
+    super(min, max);
     finishSSCommon();
   }
 
   /**
-   * Creates a Label instance with no image and binds it to the specified RowSet
-   * column.
+   * Creates a horizontal slider with the range 0 to 100 and binds it to the
+   * specified RowSet column.
    *
    * @param rowsModel          datasource to be used.
-   * @param columnName name of the column to which this label should be bound
+   * @param columnName name of the column to which this slider should be
+   *                         bound
+   * @throws java.sql.SQLException SQLException
    */
-  public Label(RowsModel rowsModel, String columnName) {
+  public SsSlider(RowsModel rowsModel, String columnName) throws java.sql.SQLException {
     this();
     rowsModel.bind(this, columnName);
   }
 
   /** {@inheritDoc } */
   @Override
+  public void checkColumnType(JDBCType jdbcType) throws IllegalArgumentException {
+    // only allow JDBC types that convert to numeric types
+    assertConvertFromJdbcType(
+        jdbcType, Integer.class,
+        EnumSet.of(INTEGER, SMALLINT, TINYINT, BIGINT, REAL, FLOAT, DOUBLE, DECIMAL, NUMERIC));
+  }
+
+  /** {@inheritDoc } */
+  @Override
   public void cleanField() {
-    setText("");
+    // SsSlider to the middle.
+    setValue((getMinimum() + getMaximum()) / 2);
   }
 
   private Hook hook;
@@ -150,33 +157,39 @@ public class Label extends JLabel implements SSComponent {
   public final Hook getSSComponentHook() {
     if (hook == null)
       hook = new Hook(this) {
-        /**
-         * Updates the value stored and displayed in the SwingSet
-         * component based on getColumnText()
-         */
+        /** {@inheritDoc } */
         @Override
         protected void updateSSComponent() {
-          final String text = getColumnText();
-          logger.log(Level.DEBUG, () -> sf("%s: Setting label to %s.", getColumnForLog(), text));
-          setText(text);
+          try {
+            Integer n = getColumnObject(Integer.class);
+            setValue(n != null ? n : 0);
+          } catch (final NumberFormatException _nfe) {
+            // TODO: Hmm, probably should be an SQL conversion error.
+            // Output the text value
+            String columnValue = getColumnText();
+            logger.log(Level.ERROR,
+                       getColumnForLog() + ": Number Format Exception. Cannot update slider to "
+                           + columnValue,
+                       _nfe);
+          }
         }
 
         /** {@inheritDoc } */
         @Override
-        protected LabelListener getSSComponentListener() {
-          return new LabelListener();
+        protected SliderListener getSSComponentListener() {
+          return new SliderListener();
         }
 
         /** {@inheritDoc } */
         @Override
         protected void addSSComponentListener(EventListener eventListener) {
-          addPropertyChangeListener("text", ((PropertyChangeListener) eventListener));
+          addChangeListener((ChangeListener) eventListener);
         }
 
         /** {@inheritDoc } */
         @Override
         protected void removeSSComponentListener(EventListener eventListener) {
-          removePropertyChangeListener("text", ((PropertyChangeListener) eventListener));
+          removeChangeListener((ChangeListener) eventListener);
         }
       };
     return hook;
@@ -185,7 +198,7 @@ public class Label extends JLabel implements SSComponent {
   /** {@inheritDoc} */
   @Override
   public String toString() {
-    return sf("%s{text=%s, %s}", getClass().getSimpleName(), getText(),
+    return sf("%s{value=%s, %s}", getClass().getSimpleName(), getValue(),
               SSUtils.ssComponentToString(this));
   }
-} // end public class Label extends JLabel {
+} // end public class SsSlider extends JSlider

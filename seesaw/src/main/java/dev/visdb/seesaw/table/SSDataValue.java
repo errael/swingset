@@ -1,5 +1,5 @@
-/* *****************************************************************************
- * Copyright (C) 2024, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
+/*******************************************************************************
+ * Copyright (C) 2003-2021, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,35 +34,22 @@
  *   Diego Gil
  *   Man "Bee" Vo
  *   Ernie R. Rael
- * ****************************************************************************/
-/* *****************************************************************************
- * The conditions in the above copyright notice apply to this copyright notice.
- * Additions and modifications made by Ernie R. Rael are
- * copyright (C) 2024, Ernie R. Rael. All rights reserved.
- * ****************************************************************************/
-package dev.visdb.seesaw.datasources;
+ ******************************************************************************/
+package dev.visdb.seesaw.table;
 
 /**
- * This exception is for unexpected (impossible) exception that comes
- * across as an SQLException. For example, rowset.getColumnCount(), once
- * there is a rowset should never happen.
+ * The SSDataValue interface specifies methods for SSTableModel to retrieve the
+ * value for primary column in JTable.
  */
-@SuppressWarnings("serial")
-public class SSSQLRuntimeException extends RuntimeException {
+public interface SSDataValue {
   /**
-   * Create exception.
-   * @param message
-   * @param cause
+   * Returns the value for the primary column in the JTable (RowSet used for
+   * building the JTable). When addition of a row is taking place in the JTable,
+   * SSTableModel tries to insert a primary key value in to that row returned by
+   * this function.
+   *
+   * @return the value for the primary key column.
    */
-  public SSSQLRuntimeException(String message, Throwable cause) {
-    super(message, cause);
-  }
+  public Object getPrimaryColumnValue();
 
-  /**
-   * Create exception.
-   * @param cause
-   */
-  public SSSQLRuntimeException(Throwable cause) {
-    super(cause);
-  }
-}
+} // end public interface SSDataValue {

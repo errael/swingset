@@ -10,13 +10,13 @@ package dev.visdb.seesaw.datasources;
  * Null used as database value where not allowed.
  */
 @SuppressWarnings(value = "serial")
-public class SSSQLNullException extends SSSQLException {
+public class SqlNullException extends SqlException {
   /**
    * Construct an SQLException with given reason.
    *
    * @param reason description of the exception
    */
-  public SSSQLNullException(String reason) {
+  public SqlNullException(String reason) {
     super(reason);
   }
 }

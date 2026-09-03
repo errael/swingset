@@ -50,8 +50,8 @@ import javax.sql.RowSet;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import dev.visdb.seesaw.core.DBComboBox2;
-import dev.visdb.seesaw.core.TextField;
+import dev.visdb.seesaw.SsDbComboBox2;
+import dev.visdb.seesaw.SsTextField;
 import dev.visdb.seesaw.datasources.DbOps;
 import dev.visdb.seesaw.datasources.products.DbOpsBase;
 import dev.visdb.seesaw.formatting.SSCurrencyField;
@@ -65,7 +65,7 @@ import dev.visdb.seesaw.formatting.SSSSNField;
 import dev.visdb.seesaw.formatting.SSTimeField;
 import dev.visdb.seesaw.formatting.SSTimestampField;
 import dev.visdb.seesaw.navigate.RowsModel;
-import dev.visdb.seesaw.utils.DataNavigator;
+import dev.visdb.seesaw.utils.SsDataNavigator;
 import dev.visdb.seesaw.utils.JStuff;
 import dev.visdb.seesaw.utils.SyncManager;
 
@@ -75,8 +75,8 @@ import dev.visdb.seesaw.utils.SyncManager;
  * There is a separate example screen to demonstrate the
  * Base SwingSet Components.
  * <p>
- * IMPORTANT: The relationship of the DBComboBox2 and RowSet queries can have a
- * large negative impact on performance. See {@link SyncManager} for an
+IMPORTANT: The relationship of the SsDbComboBox2 and RowSet queries can have a
+large negative impact on performance. See {@link SyncManager} for an
  * explanation.
  */
 @SuppressWarnings("serial")
@@ -110,7 +110,7 @@ public class TestFormattedComponents extends JFrame {
   /**
    * bound component declarations
    */
-  TextField txtSwingSetFormattedTestPK = new TextField();
+  SsTextField txtSwingSetFormattedTestPK = new SsTextField();
   //SSCuitField fmtSSCuitField = new SSCuitField();
   SSCurrencyField fmtSSCurrencyField = new SSCurrencyField();
   SSCurrencyField fmtSSCurrencyFieldNull = new SSCurrencyField();
@@ -131,13 +131,13 @@ public class TestFormattedComponents extends JFrame {
    * database component declarations
    */
   Connection connection = null;
-  DataNavigator navigator = null;
+  SsDataNavigator navigator = null;
   RowsModel rowsModel;
 
   /**
    * combo navigator and sync manger
    */
-  DBComboBox2<Long, Object, Object> cmbSSDBComboNav; // SSDBComboBox used just for navigation
+  SsDbComboBox2<Long, Object, Object> cmbSSDBComboNav; // SSDBComboBox used just for navigation
   SyncManager<Long> syncManager;
 
   /**
@@ -166,7 +166,7 @@ public class TestFormattedComponents extends JFrame {
       rowset.setCommand("SELECT * FROM swingset_formatted_test_data;");
       rowset.execute();
       rowsModel = RowsModel.create(rowset, createDbNav());
-      navigator = new DataNavigator(rowsModel);
+      navigator = new SsDataNavigator(rowsModel);
     } catch (final SQLException se) {
       logger.log(Level.ERROR, "SQL Exception.", se);
     }
@@ -174,7 +174,7 @@ public class TestFormattedComponents extends JFrame {
     // SETUP NAVIGATOR QUERY
     final String query = "SELECT * FROM swingset_formatted_test_data;";
     // (connection, query, "swingset_formatted_test_pk", "swingset_formatted_test_pk");
-    cmbSSDBComboNav = new DBComboBox2.Builder<Long, Object, Object>() {}
+    cmbSSDBComboNav = new SsDbComboBox2.Builder<Long, Object, Object>() {}
                           .connection(connection)
                           .query(query)
                           .primaryKeyColumnName("swingset_formatted_test_pk")

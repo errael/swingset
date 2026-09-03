@@ -46,7 +46,7 @@ import javax.sql.RowSet;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 
-import dev.visdb.seesaw.core.Image;
+import dev.visdb.seesaw.SsImage;
 import dev.visdb.seesaw.navigate.RowsModel;
 import dev.visdb.seesaw.utils.ZoomCanvas;
 
@@ -57,7 +57,7 @@ import static dev.visdb.seesaw.utils.SSUtils.findRowsModel;
  */
 // TODO: SSImage make all the load/store buttons/capabilities optional.
 @SuppressWarnings("serial")
-public class SSImage extends Image {
+public class SSImage extends SsImage {
   // Doesn't matter what this is, since there are no zoom controls. Always bestFit.
   private final ZoomCanvas.ResizeMode resizeMode = ZoomCanvas.ResizeMode.CENTER_PANNING;
 

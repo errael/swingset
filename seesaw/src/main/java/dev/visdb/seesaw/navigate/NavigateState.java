@@ -59,7 +59,7 @@ import com.google.common.collect.MapMaker;
 import com.raelity.lib.eventbus.WeakEventBus;
 import com.raelity.lib.eventbus.WeakSubscribe;
 
-import dev.visdb.seesaw.core.DBComboBox2;
+import dev.visdb.seesaw.SsDbComboBox2;
 import dev.visdb.seesaw.datasources.DbOps;
 import dev.visdb.seesaw.datasources.RSC;
 import dev.visdb.seesaw.datasources.RowSetOps;
@@ -382,7 +382,7 @@ final class NavigateState {
    * <p>
    * TODO Consider writing a PropertyChangeListener for onInsertRow instead.
    */
-  private DBComboBox2<?, ?, ?> navCombo = null;
+  private SsDbComboBox2<?, ?, ?> navCombo = null;
 
   private SyncManager<?> syncer = null;
 
@@ -841,7 +841,7 @@ when the insert button is pressed to perform custom actions.
   }
 
   // TODO: handle multipble navCombo?
-  <K> void setNavCombo(DBComboBox2<K, ?, ?> navCombo, SyncManager<K> syncer) {
+  <K> void setNavCombo(SsDbComboBox2<K, ?, ?> navCombo, SyncManager<K> syncer) {
     Objects.requireNonNull(navCombo);
     // TODO: Objects.requireNonNull(syncer);
     if (this.navCombo != null)
@@ -854,7 +854,7 @@ when the insert button is pressed to perform custom actions.
    * @return the navCombo
    */
   // TODO: what's this about
-  /*public*/ DBComboBox2<?, ?, ?> getNavCombo() {
+  /*public*/ SsDbComboBox2<?, ?, ?> getNavCombo() {
     return navCombo;
   }
 

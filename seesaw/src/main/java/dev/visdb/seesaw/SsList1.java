@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 
 import java.lang.System.Logger;
@@ -65,7 +65,7 @@ import javax.swing.event.ListSelectionListener;
 
 import com.google.common.reflect.TypeToken;
 
-import dev.visdb.seesaw.datasources.SSSQLRuntimeException;
+import dev.visdb.seesaw.datasources.SqlRuntimeException;
 import dev.visdb.seesaw.models.AbstractComboBoxListSwingModel;
 import dev.visdb.seesaw.models.Item1;
 import dev.visdb.seesaw.models.KeyDisplayValueSwingModel;
@@ -109,7 +109,7 @@ import static java.lang.System.Logger.Level.*;
 //       "correct" or make it simplest, like a single
 //       remodel that's never closed.
 @SuppressWarnings("serial")
-public class List1<K, D> extends JList<SSListItem> implements SSComponent {
+public class SsList1<K, D> extends JList<SSListItem> implements SSComponent {
   /**
    * Listener(s) for the component's value used to propagate changes back to bound
    * text field.
@@ -166,7 +166,7 @@ public class List1<K, D> extends JList<SSListItem> implements SSComponent {
    *
    * @param jdbcType type of key of database elements
    */
-  public List1(JDBCType jdbcType) {
+  public SsList1(JDBCType jdbcType) {
     // TODO: select proper model through the **DbPlugin**.
     this(new SSDbArray(jdbcType));
     collectionSet = false; // using a default collection
@@ -176,7 +176,7 @@ public class List1<K, D> extends JList<SSListItem> implements SSComponent {
    * @param dbCollection model to read/write the database
    */
   @SuppressWarnings("LeakingThisInConstructor")
-  public List1(SSCollection dbCollection) {
+  public SsList1(SSCollection dbCollection) {
     this.dbCollection = dbCollection;
 
     finishSSCommon();
@@ -199,7 +199,7 @@ public class List1<K, D> extends JList<SSListItem> implements SSComponent {
         throw ex;
       } catch (SQLException ex) {
         logger.log(Level.ERROR, ex.getMessage(), ex);
-        throw new SSSQLRuntimeException(ex);
+        throw new SqlRuntimeException(ex);
       } finally {
         collectionSet = true;
       }
@@ -515,7 +515,7 @@ public class List1<K, D> extends JList<SSListItem> implements SSComponent {
     //
     try {
       if (getRowsModel().onActiveRow())
-        array = dbCollection.readData(List1.this);
+        array = dbCollection.readData(SsList1.this);
     } catch (final SQLException se) {
       logger.log(Level.ERROR, () -> sf("%s: SQL Exception.", getColumnForLog()), se);
     }

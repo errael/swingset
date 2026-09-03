@@ -35,21 +35,50 @@
  *   Man "Bee" Vo
  *   Ernie R. Rael
  ******************************************************************************/
-package dev.visdb.seesaw.core.table;
+package dev.visdb.seesaw.table;
 
 /**
- * The SSDataValue interface specifies methods for SSTableModel to retrieve the
- * value for primary column in JTable.
+ * The SSDataGridHandler interface specifies set of methods that can be used to
+ * determine whether or not a given row can be deleted, and operation to be
+ * performed before and after deletion or insertion of a record.
  */
-public interface SSDataValue {
+public interface SSDataGridHandler {
   /**
-   * Returns the value for the primary column in the JTable (RowSet used for
-   * building the JTable). When addition of a row is taking place in the JTable,
-   * SSTableModel tries to insert a primary key value in to that row returned by
-   * this function.
+   * Returns true if the row row can be deleted
+   * <p>
+   * SSTableModel calls this function if the row deletion is requested
+   * (if SSDataGridHandler is implemented).
    *
-   * @return the value for the primary key column.
+   * @param row    the row number in data grid.
+   * @return returns true is the row can be deleted else false.
    */
-  public Object getPrimaryColumnValue();
+  public boolean allowDeletion(int row);
 
-} // end public interface SSDataValue {
+  /**
+   * Method to perform post-deletion operations.
+   *
+   * @param row  position of deleted row in the data grid.
+   */
+  public void performPostDeletionOps(int row);
+
+  /**
+   * Method to perform post-insertion operations.
+   *
+   * @param row position of added grid row.
+   */
+  public void performPostInsertOps(int row);
+
+  /**
+   * Method to specify any pre-deletion operations.
+   *
+   *  @param row position of data grid row being deleted.
+   */
+  public void performPreDeletionOps(int row);
+
+  /**
+   * Method to perform pre-insertion operations.
+   *
+   * @param row position of new row in the data grid.
+   */
+  public void performPreInsertOps(int row);
+}

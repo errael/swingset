@@ -53,7 +53,7 @@ import javax.sql.RowSet;
 import javax.sql.rowset.CachedRowSet;
 import javax.swing.JComponent;
 
-import dev.visdb.seesaw.core.CheckBox;
+import dev.visdb.seesaw.SsCheckBox;
 import dev.visdb.seesaw.datasources.DbSupport.DbReader;
 import dev.visdb.seesaw.datasources.DbSupport.DbUpdater;
 import dev.visdb.seesaw.datasources.DbSupport.RunnableSQL;
@@ -123,7 +123,7 @@ import static dev.visdb.seesaw.utils.SSUtils.findRowsModel;
  * This checks that the SSComponent's value is more or less correct.
  * For example a mask formatter's valid indicator,
  * {@link javax.swing.JFormattedTextField#isEditValid};
- * or a {@link dev.visdb.seesaw.core.TextField} subclass could check that there's only characters.
+ * or a {@link dev.visdb.seesaw.SsTextField} subclass could check that there's only characters.
  * <li>{@code componentValidate()} - method default true<br>
  * A subclass of something that does baseValidate, can use this for more
  * specific validation.
@@ -167,7 +167,7 @@ public interface SSComponent extends RSC {
   /**
    * An SSComponent must create a Hook. The hook is used by the SS library
    * to tell the component to read and display the current database value.
-   * Here's a complete example based on {@link CheckBox}.
+   * Here's a complete example based on {@link SsCheckBox}.
    * {@snippet lang="java" class=MyCheckBox region=hook_example}
    * <p>
    * <b>Generally should not be used except by SSCommon</b>.
@@ -215,7 +215,7 @@ public interface SSComponent extends RSC {
      *     	   return SSTextSupport.getSSDocumentListener(TextField.this);
      *     }
      * }
-     * But typically, just subclass {@link dev.visdb.seesaw.core.TextField}
+     * But typically, just subclass {@link dev.visdb.seesaw.SsTextField}
      * and it's taken care of.
      *
      * @return event listener that triggers database column update
@@ -297,7 +297,7 @@ public interface SSComponent extends RSC {
    * This is overriden to return true by components that are made up of
    * other components; and some of those contained components might get
    * the focus. Examples are
-   * {@link dev.visdb.seesaw.core.Image} and DbDatePicker.
+   * {@link dev.visdb.seesaw.SsImage} and DbDatePicker.
    * @return
    */
   // isComposite component usually has
@@ -460,7 +460,7 @@ public interface SSComponent extends RSC {
    * when not null, for capturing initial value for undo/redo.
    * This is useful for dealing with ColumnTypes that are are not
    * handled internally, like BLOB and VARBINARY.
-   * For exampe, see {@link dev.visdb.seesaw.core.Image} source code.
+   * For exampe, see {@link dev.visdb.seesaw.SsImage} source code.
    *
    * The {@code columnReader} is typically invoked like
    * {@code .apply(comp.getRowSet(), comp.getColumnIndex(), comp)}.
@@ -477,7 +477,7 @@ public interface SSComponent extends RSC {
    * Set the columnReader used by {@link #getColumn()} and internally for capturing
    * initial value. This is useful for dealing with ColumnTypes that are are not
    * handled internally, like BLOB and VARBINARY.
-   * For exampe, see {@link dev.visdb.seesaw.core.Image} source code.
+   * For exampe, see {@link dev.visdb.seesaw.SsImage} source code.
    *
    * The {@code columnReader} is typically invoked like
    * {@code .apply(comp.getRowSet(), comp.getColumnIndex(), comp)}.
@@ -533,7 +533,7 @@ public interface SSComponent extends RSC {
    * Updates the bound database column with the specified Array.
    * <p>
    * Used for SSList or other component where multiple items can be selected.
-   * See {@link dev.visdb.seesaw.core.List1} and
+   * See {@link dev.visdb.seesaw.SsList1} and
    * {@link dev.visdb.seesaw.models.SSCollection} for low level
    * details on how arrays are read and written.
    * Does not commit the update row.
@@ -567,7 +567,7 @@ public interface SSComponent extends RSC {
    * Get the columnUpdater used by {@link #setColumn(Object)}.
    * This is useful for dealing with ColumnTypes that are are not
    * handled internally, like BLOB and VARBINARY.
-   * For exampe, see {@link dev.visdb.seesaw.core.Image} source code.
+   * For exampe, see {@link dev.visdb.seesaw.SsImage} source code.
    *
    * The {@code columnUpdater} is typically invoked like
    * {@code .apply(comp.getRowSet(), comp.getColumnIndex(), comp, value)}.
@@ -583,7 +583,7 @@ public interface SSComponent extends RSC {
    * Set the columnUpdater used by {@link #setColumn(Object)}.
    * This is useful for dealing with ColumnTypes that are are not
    * handled internally, like BLOB and VARBINARY.
-   * For exampe, see {@link dev.visdb.seesaw.core.Image} source code.
+   * For exampe, see {@link dev.visdb.seesaw.SsImage} source code.
    *
    * The {@code columnUpdater} is typically invoked like
    * {@code .apply(comp.getRowSet(), comp.getColumnIndex(), comp, value)}.
@@ -940,7 +940,7 @@ public interface SSComponent extends RSC {
    * Create and return the default {@link Decorator}
    * setup during construction. The default is generally good for
    * a single {@linkplain JComponent},
-   * for example a {@linkplain dev.visdb.seesaw.core.TextField}.
+   * for example a {@link dev.visdb.seesaw.SsTextField}.
    * When a visual component is made up of multiple components a custom
    * decorator may be required.
    *

@@ -53,7 +53,7 @@ import dev.visdb.seesaw.navigate.RowsModel;
 /**
  * This interface is an accessor to a {@linkplain RowSet} and one of its
  * columns; it is extended by {@link dev.visdb.seesaw.utils.SSComponent}.
- * Some components, in particular {@linkplain dev.visdb.seesaw.core.DataGrid},
+ * Some components, in particular {@linkplain dev.visdb.seesaw.SsTable},
  * have multiple columns; this
  * interface allows a lightweight object to provide row set access for
  * a specified column. Many
@@ -72,7 +72,7 @@ public interface RSC {
    * @param rowsModel
    * @param columnIndex
    * @return
-   * @throws SSSQLRuntimeException
+   * @throws SqlRuntimeException
    */
   static RSC get(RowsModel rowsModel, int columnIndex) {
     //
@@ -81,7 +81,7 @@ public interface RSC {
     try {
       return new SimpleRSC(rowsModel, columnIndex);
     } catch (SQLException ex) {
-      throw new SSSQLRuntimeException(ex);
+      throw new SqlRuntimeException(ex);
     }
   }
 

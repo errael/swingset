@@ -35,7 +35,7 @@
  *   Man "Bee" Vo
  *   Ernie R. Rael
  ******************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -88,10 +88,10 @@ import javax.swing.table.TableRowSorter;
 
 import com.raelity.jdk.sun.swing.table.TableSortHeaderRenderer;
 
-import dev.visdb.seesaw.core.table.SSCellEditing;
-import dev.visdb.seesaw.core.table.SSDataValue;
-import dev.visdb.seesaw.core.table.SSTableKeyAdapter;
-import dev.visdb.seesaw.core.table.SSTableModel;
+import dev.visdb.seesaw.table.SSCellEditing;
+import dev.visdb.seesaw.table.SSDataValue;
+import dev.visdb.seesaw.table.SSTableKeyAdapter;
+import dev.visdb.seesaw.table.SSTableModel;
 import dev.visdb.seesaw.datasources.RSC;
 import dev.visdb.seesaw.datasources.RowSetOps;
 import dev.visdb.seesaw.models.SimpleComboListSwingModel;
@@ -109,38 +109,38 @@ import static java.lang.System.Logger.Level.*;
  * RowSet as a source of data. It also provides different cell renderers
  * including a comboboxes renderer and a date renderer.
  * <p>
- * DataGrid internally uses the SSTableModel to display the information in a
- * table format. DataGrid also provides an easy means for displaying headers.
- * Columns can be hidden or made uneditable. In addition, it provides much finer
- * control over which cells can be edited and which cells can't be edited. It
- * uses the SSCellEditing interface for achieving this. The implementation of
- * this interface also provides a way to specify what kind of information is
- * valid for each cell.
- * <p>
- * DataGrid maps Control-X to delete multiple selected rows.
- * Adds copy/paste handling of rectangular regions.
- * <p>
- * DataGrid uses the isCellEditable() method in SSCellEditing to determine if
- * a cell is editable or not. The cellUpdateRequested() method of SSCellEditing
- * is used to notify a user program when an update is requested. While doing so
- * it provides the present value in the cell and also the new value. Based on
- * this information the new value can be rejected or accepted by the program.
- * <p>
- * DataGrid also provides an "extra" row to facilitate the addition of rows to
- * the table. Default values for various columns can be set programmatically. A
- * programmer can also specify which column is the primary key column for the
- * underlying RowSet and supply a primary key for that column when a new row
- * is being added.
- * <p>
+SsTable internally uses the SSTableModel to display the information in a
+table format. SsTable also provides an easy means for displaying headers.
+Columns can be hidden or made uneditable. In addition, it provides much finer
+control over which cells can be edited and which cells can't be edited. It
+uses the SSCellEditing interface for achieving this. The implementation of
+this interface also provides a way to specify what kind of information is
+valid for each cell.
+<p>
+SsTable maps Control-X to delete multiple selected rows.
+Adds copy/paste handling of rectangular regions.
+<p>
+SsTable uses the isCellEditable() method in SSCellEditing to determine if
+a cell is editable or not. The cellUpdateRequested() method of SSCellEditing
+is used to notify a user program when an update is requested. While doing so
+it provides the present value in the cell and also the new value. Based on
+this information the new value can be rejected or accepted by the program.
+<p>
+SsTable also provides an "extra" row to facilitate the addition of rows to
+the table. Default values for various columns can be set programmatically. A
+programmer can also specify which column is the primary key column for the
+underlying RowSet and supply a primary key for that column when a new row
+is being added.
+<p>
  * While using the headers always set them before you set the RowSet.
  * Otherwise the headers will not appear.
  * <p>
- * Also if you are using column names rather than column numbers for different
- * function you have to call them only after setting the RowSet. Because
- * DataGrid uses the RowSet to convert the column names to column numbers.
- * If you specify the column numbers you can do before or after setting the
- * RowSet, it does not matter.
- * <p>
+Also if you are using column names rather than column numbers for different
+function you have to call them only after setting the RowSet. Because
+SsTable uses the RowSet to convert the column names to column numbers.
+If you specify the column numbers you can do before or after setting the
+RowSet, it does not matter.
+<p>
  * You can simply remember this order
  * <ol>
  * <li>Set the headers
@@ -153,7 +153,7 @@ import static java.lang.System.Logger.Level.*;
  * Also See Examples 5, 6, 7 in the samples.
  */
 @SuppressWarnings("serial")
-public class DataGrid extends JTable {
+public class SsTable extends JTable {
   // TODO BUG? there's no programatic way to change COPY/PASTE.
   //		For example to do keyAdapter.setAlloowInsertaion false.
   // TODO Add documentation for CUT/PASTE keys/operation.
@@ -689,7 +689,7 @@ public class DataGrid extends JTable {
      * Constructs Default Editor.
      */
     public DefaultEditor() {
-      super(new TextField()); // TODO: just JTextField
+      super(new SsTextField()); // TODO: just JTextField
       getComponent().setFocusTraversalKeysEnabled(false);
       final MyListener listener = new MyListener();
       getComponent().addFocusListener(listener);
@@ -815,7 +815,7 @@ public class DataGrid extends JTable {
   /**
    * Constructs an empty data grid.
    */
-  public DataGrid() {
+  public SsTable() {
     messageWindow = this;
     init();
   }
@@ -850,7 +850,7 @@ public class DataGrid extends JTable {
    *
    * @param rowsModel RowSet from which values have to be retrieved.
    */
-  public DataGrid(RowsModel rowsModel) {
+  public SsTable(RowsModel rowsModel) {
     this();
     this.rowsModel = rowsModel;
     this.rowSet = rowsModel.getRowSet();
@@ -1721,5 +1721,5 @@ public class DataGrid extends JTable {
     getModel().setUneditableColumns(columnNumbers);
   }
 
-} // end public class DataGrid extends JTable {
+} // end public class SsTable extends JTable {
 //  vi: ts=4 sw=4

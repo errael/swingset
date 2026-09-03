@@ -73,8 +73,8 @@ import javax.swing.KeyStroke;
 import com.raelity.lib.eventbus.WeakEventBus;
 import com.raelity.lib.eventbus.WeakSubscribe;
 
-import dev.visdb.seesaw.core.DBComboBox2;
-import dev.visdb.seesaw.core.TextField;
+import dev.visdb.seesaw.SsDbComboBox2;
+import dev.visdb.seesaw.SsTextField;
 import dev.visdb.seesaw.datasources.ConvertType;
 import dev.visdb.seesaw.datasources.DbSupport.DbReader;
 import dev.visdb.seesaw.datasources.DbSupport.DbUpdater;
@@ -82,10 +82,10 @@ import dev.visdb.seesaw.datasources.DbSupport.FunctionSQL;
 import dev.visdb.seesaw.datasources.DbSupport.RunnableSQL;
 import dev.visdb.seesaw.datasources.RowSetOps;
 import dev.visdb.seesaw.datasources.RowSetOps.DbUpdate;
-import dev.visdb.seesaw.datasources.SSSQLConversionException;
-import dev.visdb.seesaw.datasources.SSSQLInternalException;
-import dev.visdb.seesaw.datasources.SSSQLNullException;
-import dev.visdb.seesaw.datasources.SSSQLRuntimeException;
+import dev.visdb.seesaw.datasources.SqlConversionException;
+import dev.visdb.seesaw.datasources.SqlInternalException;
+import dev.visdb.seesaw.datasources.SqlNullException;
+import dev.visdb.seesaw.datasources.SqlRuntimeException;
 import dev.visdb.seesaw.decorators.BorderDecorator;
 import dev.visdb.seesaw.decorators.Decorator;
 import dev.visdb.seesaw.decorators.DecoratorSupplier;
@@ -165,7 +165,7 @@ final class SSCommon {
    * in the constructor.
    * <p>
    * Assert if a non null partialSSCommon doesn't match the ssComponent.
-   * See {@link TextField#getSSCommon() } for example usage.
+   * See {@link SsTextField#getSSCommon() } for example usage.
    *
    * @param ssComponent SwingSet component to attach to this SSCommon.
    * @param partialSSCommon if non null return it
@@ -181,7 +181,7 @@ final class SSCommon {
    * Doing "SSCommon.createFinish(this, null)" is equivalent to "new SSCommon(this)".
    * <p>
    * Assert if a non null partialSSCommon doesn't match the ssComponent.
-   * See {@link TextField#TextField(javax.sql.RowSet, java.lang.String) }
+   * See {@link SsTextField#TextField(javax.sql.RowSet, java.lang.String) }
    * for example usage.
    *
    * @param ssComponent SwingSet component to attach to this SSCommon.
@@ -855,7 +855,7 @@ final class SSCommon {
     } catch (SQLException ex) {
       String msg = sf("%s undo/redo initial capture failed", getColumnForLog());
       logger.log(Level.ERROR, msg, ex);
-      throw new SSSQLRuntimeException(msg, ex);
+      throw new SqlRuntimeException(msg, ex);
     }
 
     boolean ok = false;
@@ -890,15 +890,15 @@ final class SSCommon {
     String ex_title = null;
     String ex_msg = null;
     switch (ex) {
-      case SSSQLInternalException e -> {
+      case SqlInternalException e -> {
         ex_title = "SS Internal Error";
         ex_msg = sf("%s: %s", getColumnName(), e.getMessage());
       }
-      case SSSQLConversionException e -> {
+      case SqlConversionException e -> {
         ex_title = "Conversion Error";
         ex_msg = e.getLocalizedMessage();
       }
-      case SSSQLNullException _ -> {
+      case SqlNullException _ -> {
         ex_title = "Null Exception";
         ex_msg = "Null values are not allowed for " + getColumnName();
       }
@@ -988,7 +988,7 @@ final class SSCommon {
    * Returns the name of the database column to which the SwingSet component is
    * bound.
    * <p>
-   * Note: In {@link DBComboBox2} if this returns null, then it's a
+   * Note: In {@link SsDbComboBox2} if this returns null, then it's a
    * ComboBoxNavigator.
    *
    * @return the bound columnName

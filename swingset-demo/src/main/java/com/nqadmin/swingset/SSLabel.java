@@ -45,8 +45,7 @@ package com.nqadmin.swingset;
 import javax.sql.RowSet;
 import javax.swing.Icon;
 
-import dev.visdb.seesaw.core.Label;
-
+import dev.visdb.seesaw.SsLabel;
 import dev.visdb.seesaw.navigate.RowsModel;
 
 import static dev.visdb.seesaw.utils.SSUtils.findRowsModel;
@@ -57,7 +56,7 @@ import static dev.visdb.seesaw.utils.SSUtils.findRowsModel;
  * except of course to set a label's value from a RowSet.
  */
 @SuppressWarnings("serial")
-public class SSLabel extends Label {
+public class SSLabel extends SsLabel {
   /**
    * Empty constructor needed for deserialization. Creates a SSLabel instance with
    * no image and no text.

@@ -58,10 +58,10 @@ import javax.swing.JToggleButton;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import dev.visdb.seesaw.core.DataGrid;
-import dev.visdb.seesaw.core.table.SSDataGridHandler;
-import dev.visdb.seesaw.core.table.SSDataValue;
-import dev.visdb.seesaw.core.table.SSTableModel;
+import dev.visdb.seesaw.SsTable;
+import dev.visdb.seesaw.table.SSDataGridHandler;
+import dev.visdb.seesaw.table.SSDataValue;
+import dev.visdb.seesaw.table.SSTableModel;
 import dev.visdb.seesaw.datasources.RowSetOps;
 
 import static dev.visdb.seesaw.utils.JStuff.sf;
@@ -76,12 +76,12 @@ import static java.lang.System.Logger.Level.*;
 class DataGridExampleSupport {
   private final Container uiContainer;
   private final RowSet rowset;
-  private final DataGrid dataGrid;
+  private final SsTable dataGrid;
   @SuppressWarnings("NonConstantLogger")
   private final Logger logger;
 
   /** assumes rowset has been set */
-  static void setup(Logger logger, Container uiContainer, RowSet rowset, DataGrid dataGrid,
+  static void setup(Logger logger, Container uiContainer, RowSet rowset, SsTable dataGrid,
                     int primaryColumn, SSDataValue dataValue, String[] columnNames,
                     Object[] defaultValues) throws SQLException {
     DataGridExampleSupport dges = new DataGridExampleSupport(logger, uiContainer, rowset, dataGrid);
@@ -89,7 +89,7 @@ class DataGridExampleSupport {
   }
 
   private DataGridExampleSupport(Logger _logger, Container _uiContainer, RowSet _rowset,
-                                 DataGrid _dataGrid) {
+                                 SsTable _dataGrid) {
     if (!(_uiContainer.getLayout() instanceof BorderLayout)) {
       throw new IllegalArgumentException("uiContainer without BorderLayout");
     }

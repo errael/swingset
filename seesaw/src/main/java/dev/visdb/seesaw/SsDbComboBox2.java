@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -63,8 +63,8 @@ import static dev.visdb.seesaw.utils.JStuff.sf;
 import static java.lang.System.Logger.Level.*;
 
 /**
- * Similar to the ComboBox2, but used when both
- * {@code <K>}, the 'bound' value, and {@code <D>}, the
+ * Similar to the SsComboBox2, but used when both
+{@code <K>}, the 'bound' value, and {@code <D>}, the
  * 'display' value, are pulled from a database table.
  * {@code <K>} is
  * the 'key' and the display value the 'text' which appears in the combo box.
@@ -78,7 +78,7 @@ import static java.lang.System.Logger.Level.*;
  * see {@link #setD2ColumnName(String) }. This data may be displayed by the
  * SSListItem, see {@link #setD2DisplayEnabled(boolean)} and {@link getListItemFormat()}
  * <p>
- * <b>Refer to {@link ComboBox2} for warnings and caveats.</b>
+ * <b>Refer to {@link SsComboBox2} for warnings and caveats.</b>
  * <p>
  * <a id="builders-and-generics"></a>
  * <h2> Builders and generic type parameter capture</h2>
@@ -87,11 +87,11 @@ import static java.lang.System.Logger.Level.*;
  * so that the data read from a database column is converted to the concrete
  * type specified by the parameter type.
  * <p>
- * When you have a DBComboBox2 with param types that you frequently use, it is
- * convenient to incorporate it into a re-usable class.
- * Here's a simple example where you lock in the types, don't add anything
- * else, MyDbComboBox.Builder just works.
- * {@snippet class=ComboBoxSnippets region=MyDbComboBox}
+ When you have a SsDbComboBox2 with param types that you frequently use, it is
+ convenient to incorporate it into a re-usable class.
+ Here's a simple example where you lock in the types, don't add anything
+ else, MyDbComboBox.Builder just works.
+ {@snippet class=ComboBoxSnippets region=MyDbComboBox}
  * <p>
  * This next example, DbComboBox2Extra, does a lot.
  * <ol>
@@ -134,7 +134,7 @@ import static java.lang.System.Logger.Level.*;
  * @param <D2> list item optional extra data field type
  */
 @SuppressWarnings("serial")
-public class DBComboBox2<K, D, D2> extends ComboBox2<K, D, D2> {
+public class SsDbComboBox2<K, D, D2> extends SsComboBox2<K, D, D2> {
   /** Logger for component */
   private static final Logger logger = JStuff.getLogger();
 
@@ -170,14 +170,14 @@ public class DBComboBox2<K, D, D2> extends ComboBox2<K, D, D2> {
   private static final String DEFAULT_DATE_FORMAT = "MM/dd/yyyy";
 
   /**
-   * To build a DBComboBox2 with the specified parameters.
+   * To build a SsDbComboBox2 with the specified parameters.
    * @param <K>
    * @param <D>
    * @param <D2>
    * @param <T>
    */
   public abstract static class AbstractBuilder<K, D, D2, T extends AbstractBuilder<K, D, D2, T>>
-      extends ComboBox2.AbstractBuilder<K, D, D2, T> {
+      extends SsComboBox2.AbstractBuilder<K, D, D2, T> {
     // all parameters are optional, at least for now
     private Connection connection;
     private String query;
@@ -190,7 +190,7 @@ public class DBComboBox2<K, D, D2> extends ComboBox2<K, D, D2> {
      * AbstractBuilder
      */
     public AbstractBuilder() {
-      // DBComboBox2 has a different default than ComboBox2, so set that up.
+      // SsDbComboBox2 has a different default than SsComboBox2, so set that up.
       super.modelType(DEFAULT_MODEL_DB_COMBO2);
     }
 
@@ -276,10 +276,10 @@ public class DBComboBox2<K, D, D2> extends ComboBox2<K, D, D2> {
       return this;
     }
 
-    /** Create DBComboBox2 */
+    /** Create SsDbComboBox2 */
     @Override
-    public DBComboBox2<K, D, D2> build() {
-      return new DBComboBox2<>(this);
+    public SsDbComboBox2<K, D, D2> build() {
+      return new SsDbComboBox2<>(this);
     }
   }
 
@@ -292,7 +292,7 @@ public class DBComboBox2<K, D, D2> extends ComboBox2<K, D, D2> {
    *
    * @param builder
    */
-  protected DBComboBox2(AbstractBuilder<K, D, D2, ?> builder) {
+  protected SsDbComboBox2(AbstractBuilder<K, D, D2, ?> builder) {
     super(builder);
     // TODO: error checking: query/primaryK, displayC all must be set.
     if (builder.primaryKeyColumnName == null || builder.primaryKeyColumnName.isBlank()
@@ -315,7 +315,7 @@ public class DBComboBox2<K, D, D2> extends ComboBox2<K, D, D2> {
   /**
    * Create a DBComboBox2.
    */
-  public DBComboBox2() {
+  public SsDbComboBox2() {
     this(new Builder<>());
   }
 

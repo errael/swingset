@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2025-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.lang.System.Logger;
 import java.util.EventListener;
@@ -58,10 +58,10 @@ import static dev.visdb.seesaw.utils.JStuff.sf;
 import static java.lang.System.Logger.Level.*;
 
 /**
- * TextArea extends the JTextArea to add RowSet binding.
+ * SsTextArea extends the JTextArea to add RowSet binding.
  */
 @SuppressWarnings("serial")
-public class TextArea extends JTextArea implements SSComponent {
+public class SsTextArea extends JTextArea implements SSComponent {
   // TODO Consider adding an InputVerifier to prevent component from losing focus.
   //      Probably want component/system-wide option.
   // See SSFormattedTextField. May be able to add to SSDocumentListener in
@@ -75,7 +75,7 @@ public class TextArea extends JTextArea implements SSComponent {
   /**
    * Empty constructor needed for deserialization.
    */
-  public TextArea() {
+  public SsTextArea() {
     finishSSCommon();
   }
 
@@ -86,7 +86,7 @@ public class TextArea extends JTextArea implements SSComponent {
    * @param _rows    {@literal the number of rows >= 0}
    * @param _columns {@literal the number of columns >= 0}
    */
-  public TextArea(int _rows, int _columns) {
+  public SsTextArea(int _rows, int _columns) {
     super(_rows, _columns);
     finishSSCommon();
   }
@@ -97,7 +97,7 @@ public class TextArea extends JTextArea implements SSComponent {
    * @param rowsModel          datasource to be used.
    * @param columnName name of the column to which this text area should be bound
    */
-  public TextArea(RowsModel rowsModel, String columnName) {
+  public SsTextArea(RowsModel rowsModel, String columnName) {
     this();
     rowsModel.bind(this, columnName);
   }
@@ -138,7 +138,7 @@ public class TextArea extends JTextArea implements SSComponent {
         /** {@inheritDoc } */
         @Override
         protected SSDocumentListener getSSComponentListener() {
-          return SSTextSupport.getSSDocumentListener(TextArea.this);
+          return SSTextSupport.getSSDocumentListener(SsTextArea.this);
         }
 
         /** {@inheritDoc } */
@@ -162,4 +162,4 @@ public class TextArea extends JTextArea implements SSComponent {
     return sf("%s{text=%s, %s}", getClass().getSimpleName(), getText(),
               SSUtils.ssComponentToString(this));
   }
-} // end public class TextArea extends JTextArea {
+} // end public class SsTextArea extends JTextArea {

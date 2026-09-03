@@ -27,7 +27,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
+
+import dev.visdb.seesaw.SsList1;
 
 import java.sql.JDBCType;
 import java.util.Collections;
@@ -48,7 +50,7 @@ import dev.visdb.seesaw.utils.SSComponent;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * List1.
+ * SsList1.
  */
 public class List1Test {
   /** x */
@@ -77,7 +79,7 @@ public class List1Test {
    * MyList
    */
   @SuppressWarnings("serial")
-  class MyList extends List1<Object, String> implements SSComponent {
+  class MyList extends SsList1<Object, String> implements SSComponent {
     /** x */
     public MyList() {
       // 2022-05-04: Changing from JDBCType.NULL to INTEGER as that will
@@ -87,7 +89,7 @@ public class List1Test {
   }
 
   /**
-   * Test of getChosenKeys method, of class List1;
+   * Test of getChosenKeys method, of class SsList1;
 Also getChosenDisplayValues.
    */
   @Test
@@ -178,7 +180,7 @@ Also getChosenDisplayValues.
 
     // check shadows
     // If shadows are used, there are exceptions and empty lists; but
-    // shadows should be copied when populating List1, see getDisconnectedList()
+    // shadows should be copied when populating SsList1, see getDisconnectedList()
 
     String expect = "{one,oneM}{two,twoM}{three,threeM}{four,fourM}";
     myList.setDisplayValues(otherOptions, otherMappings);

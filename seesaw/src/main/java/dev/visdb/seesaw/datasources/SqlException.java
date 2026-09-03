@@ -1,5 +1,5 @@
 /* *****************************************************************************
- * Copyright (C) 2025, Ernie R Rael. All rights reserved.
+ * Copyright (C) 2024, Ernie R Rael. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,73 +27,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw.datasources;
 
-import java.util.Optional;
-
-import dev.visdb.seesaw.models.Item1;
+import java.sql.SQLException;
 
 /**
- * A ComboBox that only has a single displayValue.
- * See {@link ComboBox2} for documentation.
- *
- * @param <K> key type
- * @param <D> displayValue type
+ * Base of all SS specific exceptions
  */
 @SuppressWarnings("serial")
-public class ComboBox1<K, D> extends ComboBox2<K, D, Object> {
+public class SqlException extends SQLException {
   /**
-   * Builder; see {@link ComboBox2.Builder}.
-   * @param <K>
-   * @param <D>
-   * @param <T>
+   * SSException
+   * @param reason reason
    */
-  public abstract static class AbstractBuilder<K, D, T extends AbstractBuilder<K, D, T>>
-      extends ComboBox2.AbstractBuilder<K, D, Object, T> {}
-
-  /**
-   * Builder.
-   * @param <K>
-   * @param <D>
-   */
-  public static class Builder<K, D> extends AbstractBuilder<K, D, Builder<K, D>> {
-    /** self type idiom */
-    @Override
-    protected Builder<K, D> self() {
-      return this;
-    }
-
-    /** create ComboBox1 */
-    @Override
-    public ComboBox1<K, D> build() {
-      return new ComboBox1<>(this);
-    }
+  public SqlException(String reason) {
+    super(reason);
   }
 
   /**
-   * @param builder
+   * SSException
    */
-  protected ComboBox1(AbstractBuilder<K, D, ?> builder) {
-    super(builder);
+  public SqlException() {}
+
+  /**
+   * SSException
+   * @param cause cause
+   */
+  public SqlException(Throwable cause) {
+    super(cause);
   }
 
   /**
-   * Creates an object of ComboBox with type params of Object.
-   * Default: see {@link ComboBox2}.
+   * SSException
+   * @param reason reason
+   * @param cause cause
    */
-  // TODO: this fails because "K" is not concrete.
-  public ComboBox1() {
-    this(new ComboBox1.Builder<>() {});
-  }
-
-  /**
-   * Return a copy of the chosenItem with methods getKey(), getDisplayValue().
-   */
-  @Override
-  public Item1<K, D> getChosenItem() {
-    Optional<Item1<K, D>> item = getChosenItem((remodel, lItem) -> {
-      return new Item1<>(remodel.getKey(lItem), remodel.getDisplayValue(lItem));
-    });
-    return item.orElse(new Item1<>(null, null));
+  public SqlException(String reason, Throwable cause) {
+    super(reason, cause);
   }
 }

@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -60,10 +60,10 @@ import static dev.visdb.seesaw.utils.JStuff.sf;
 import static java.lang.System.Logger.Level.*;
 
 /**
- * TextField extends the JTextField.
+ * SsTextField extends the JTextField.
  */
 @SuppressWarnings("serial")
-public class TextField extends JTextField implements SSComponent {
+public class SsTextField extends JTextField implements SSComponent {
   // TODO Consider adding an InputVerifier to prevent component from
   // losing focus; see FormattedTextField.
 
@@ -73,7 +73,7 @@ public class TextField extends JTextField implements SSComponent {
   /**
    * Constructs a new, empty text field.
    */
-  public TextField() {
+  public SsTextField() {
     this(null);
   }
 
@@ -81,7 +81,7 @@ public class TextField extends JTextField implements SSComponent {
    * Constructs a new text field with the given text.
    * @param text initial text
    */
-  public TextField(String text) {
+  public SsTextField(String text) {
     this(text, null, null);
   }
 
@@ -91,12 +91,12 @@ public class TextField extends JTextField implements SSComponent {
    * @param rowsModel        model for a RowSet
    * @param columnName name of the column to which this label should be bound
    */
-  public TextField(RowsModel rowsModel, String columnName) {
+  public SsTextField(RowsModel rowsModel, String columnName) {
     this(null, rowsModel, columnName);
   }
 
   /** All the constructors feed through here */
-  private TextField(String text, RowsModel rowsModel, String columnName) {
+  private SsTextField(String text, RowsModel rowsModel, String columnName) {
     super(text);
     finishSSCommon();
     if (rowsModel != null)
@@ -125,7 +125,7 @@ public class TextField extends JTextField implements SSComponent {
       @Override
       public void focusGained(FocusEvent fe) {
         // TODO: Turn off any TextDecorator while focused
-        TextField.this.selectAll();
+        SsTextField.this.selectAll();
       }
     });
   }
@@ -157,7 +157,7 @@ public class TextField extends JTextField implements SSComponent {
         /** {@inheritDoc } */
         @Override
         protected SSDocumentListener getSSComponentListener() {
-          return SSTextSupport.getSSDocumentListener(TextField.this);
+          return SSTextSupport.getSSDocumentListener(SsTextField.this);
         }
 
         /** {@inheritDoc } */
@@ -182,4 +182,4 @@ public class TextField extends JTextField implements SSComponent {
               SSUtils.ssComponentToString(this));
   }
 
-} // end public class TextField extends JTextField {
+} // end public class SsTextField extends JTextField {

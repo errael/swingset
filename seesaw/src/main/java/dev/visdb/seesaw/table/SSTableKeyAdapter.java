@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core.table;
+package dev.visdb.seesaw.table;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -60,15 +60,15 @@ import java.util.StringTokenizer;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
-import dev.visdb.seesaw.core.DataGrid;
+import dev.visdb.seesaw.SsTable;
 import dev.visdb.seesaw.utils.JStuff;
 
 import static dev.visdb.seesaw.utils.JStuff.sf;
 import static java.lang.System.Logger.Level.*;
 
 /**
- * Key adapter for JTable and DataGrid that manages cut and paste functionality
- * between a table and either another table or a spreadsheet.
+ * Key adapter for JTable and SsTable that manages cut and paste functionality
+between a table and either another table or a spreadsheet.
  */
 public class SSTableKeyAdapter extends KeyAdapter {
   /** Logger for component */
@@ -120,7 +120,7 @@ public class SSTableKeyAdapter extends KeyAdapter {
   protected boolean allowInsertion = false;
 
   /**
-   * Indicates row used for insertion in DataGrid.
+   * Indicates row used for insertion in SsTable.
    */
   protected boolean forSSDataGrid = false;
 
@@ -272,7 +272,7 @@ public class SSTableKeyAdapter extends KeyAdapter {
         int rowCount = jTable.getRowCount();
         final int columnCount = jTable.getColumnCount();
 
-        if (forSSDataGrid || (jTable instanceof DataGrid)) {
+        if (forSSDataGrid || (jTable instanceof SsTable)) {
           rowCount--;
         }
 
@@ -393,8 +393,8 @@ public class SSTableKeyAdapter extends KeyAdapter {
    * Sets forSSDataGrid indicator. True if the key adapter is used for SSDataGrid
    * -- otherwise false. False by default.
    *
-   * @param forSSDataGrid - true if this key adapter is used for DataGrid, else
-                      false.
+   * @param forSSDataGrid - true if this key adapter is used for SsTable, else
+                     false.
    */
   public void setForSSDataGrid(boolean forSSDataGrid) {
     this.forSSDataGrid = forSSDataGrid;

@@ -56,7 +56,7 @@ import com.google.common.collect.MapMaker;
 import com.google.common.eventbus.EventBus;
 import com.raelity.lib.eventbus.WeakEventBus;
 
-import dev.visdb.seesaw.core.DBComboBox2;
+import dev.visdb.seesaw.SsDbComboBox2;
 import dev.visdb.seesaw.datasources.DbOps;
 import dev.visdb.seesaw.datasources.DbSupport;
 import dev.visdb.seesaw.datasources.RowSetOps;
@@ -1051,7 +1051,7 @@ public final class RowsModel {
    * @deprecated this shouldn't be public
    */
   @Deprecated
-  public void setNavCombo(DBComboBox2<?, ?, ?> navCombo) {
+  public void setNavCombo(SsDbComboBox2<?, ?, ?> navCombo) {
     setNavCombo(navCombo, null);
   }
 
@@ -1062,7 +1062,7 @@ public final class RowsModel {
    * @deprecated this shouldn't be public
    */
   @Deprecated
-  public <K> void setNavCombo(DBComboBox2<K, ?, ?> navCombo, SyncManager<K> syncer) {
+  public <K> void setNavCombo(SsDbComboBox2<K, ?, ?> navCombo, SyncManager<K> syncer) {
     navState.setNavCombo(navCombo, syncer);
   }
 
@@ -1072,7 +1072,7 @@ public final class RowsModel {
    */
   // TODO: what's this about? Remove it.
   @Deprecated
-  public DBComboBox2<?, ?, ?> getNavCombo() {
+  public SsDbComboBox2<?, ?, ?> getNavCombo() {
     return navState.getNavCombo();
   }
 }

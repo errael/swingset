@@ -46,8 +46,8 @@ import java.sql.SQLException;
 
 import dev.visdb.seesaw.navigate.DbOpsChangeEvent;
 import dev.visdb.seesaw.navigate.RowsAction;
+import dev.visdb.seesaw.navigate.RowsAction.Navigation;
 import dev.visdb.seesaw.navigate.RowsModel;
-import dev.visdb.seesaw.utils.SSEnums.Navigation;
 
 /**
  * Interface that provides a set of methods to perform custom operations
@@ -65,7 +65,7 @@ import dev.visdb.seesaw.utils.SSEnums.Navigation;
  * enum values which have associated actions. The actions
  * are typically invoked by a <b>navigator button push</b> which invokes the
  * associated action,
- * for example see {@link dev.visdb.seesaw.utils.DataNavigator}
+ * for example see {@link dev.visdb.seesaw.utils.SsDataNavigator}
  * <p>
  * This interface has only default methods, none of which do anything; it
  * can be instantiated by doing {@code new DbOps() {}}.
@@ -119,7 +119,7 @@ public interface DbOps {
    * This functions is called just before doing something that is sensitive
    * to a row being dirty. When it returns true, it is followed by
    * rowSet.updateRow(). Note that the default for {@code AutoCommit} is false.
-   * So the behavior of {@link dev.visdb.seesaw.utils.DataNavigator} in conjunction with
+   * So the behavior of {@link dev.visdb.seesaw.utils.SsDataNavigator} in conjunction with
    * {@link RowsAction} is that when the current row is dirty only
    * commit and undo are enabled.
    *

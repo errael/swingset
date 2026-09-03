@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2025-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -69,14 +69,14 @@ import static java.sql.JDBCType.*;
  * The CheckBox can be bound to a numeric or boolean database column.
  * The boolean value is converted to the data base type by the
  * {@link #setColumnObject(java.lang.Object)} infrastructure.
- * Currently, Dec 2024, if bound to a numeric database column, a checked
- * CheckBox puts a '1' to the database and an unchecked CheckBox puts a '0'.
- * <p>
- * TODO: In the future an option may be added to allow the user to specify the
- * values returned for the checked and unchecked CheckBox states.
+Currently, Dec 2024, if bound to a numeric database column, a checked
+SsCheckBox puts a '1' to the database and an unchecked SsCheckBox puts a '0'.
+<p>
+TODO: In the future an option may be added to allow the user to specify the
+values returned for the checked and unchecked SsCheckBox states.
  */
 @SuppressWarnings("serial")
-public class CheckBox extends JCheckBox implements SSComponent {
+public class SsCheckBox extends JCheckBox implements SSComponent {
   /**
    * Listener(s) for the component's value used to propagate changes back to bound
    * database column
@@ -99,7 +99,7 @@ public class CheckBox extends JCheckBox implements SSComponent {
   /**
    * Creates an object of CheckBox.
    */
-  public CheckBox() {
+  public SsCheckBox() {
     this(null);
   }
 
@@ -111,7 +111,7 @@ public class CheckBox extends JCheckBox implements SSComponent {
    * @param columnName name of the column to which this check box should be
    *                         bound
    */
-  public CheckBox(RowsModel rowsModel, String columnName) {
+  public SsCheckBox(RowsModel rowsModel, String columnName) {
     this(null);
     rowsModel.bind(this, columnName);
   }
@@ -121,7 +121,7 @@ public class CheckBox extends JCheckBox implements SSComponent {
    *
    * @param text Checkbox label
    */
-  public CheckBox(String text) {
+  public SsCheckBox(String text) {
     super(text);
     logger.log(Level.DEBUG,
                () -> sf("original border: %s", BorderDecorator.asString(getBorder(), this)));
@@ -193,4 +193,4 @@ public class CheckBox extends JCheckBox implements SSComponent {
     return sf("CheckBox{selected=%s, %s}", isSelected(), SSUtils.ssComponentToString(this));
   }
 
-} // end public class CheckBox
+} // end public class SsCheckBox

@@ -51,7 +51,7 @@ import java.util.Locale;
 
 import javax.sql.RowSet;
 
-import dev.visdb.seesaw.core.DBComboBox2;
+import dev.visdb.seesaw.SsDbComboBox2;
 import dev.visdb.seesaw.datasources.RowSetOps.DbUpdate;
 import dev.visdb.seesaw.datasources.products.H2DbSupport;
 import dev.visdb.seesaw.utils.JStuff;
@@ -95,7 +95,7 @@ public interface DbSupport {
 
   /**
    * Create a query that contains the row number of a non "order by" query.
-   * When used in conjunction with a {@link DBComboBox2} which is acting as
+   * When used in conjunction with a {@link SsDbComboBox2} which is acting as
    * a combobox navigator, the row number is used to avoid sequential searches
    * table searches in {@link dev.visdb.seesaw.utils.SyncManager}.
    * For example, given {@snippet lang="java":

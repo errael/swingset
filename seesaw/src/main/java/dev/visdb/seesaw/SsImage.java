@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2025-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -101,7 +101,7 @@ import dev.visdb.seesaw.utils.SSUtils;
 import dev.visdb.seesaw.utils.ZoomCanvas;
 import dev.visdb.seesaw.utils.ZoomCanvas.ResizeMode;
 
-import static dev.visdb.seesaw.core.Image.ScrollBarPolicy.*;
+import static dev.visdb.seesaw.SsImage.ScrollBarPolicy.*;
 import static dev.visdb.seesaw.utils.JStuff.sf;
 import static java.lang.System.Logger.Level.*;
 import static java.nio.file.StandardOpenOption.READ;
@@ -124,9 +124,9 @@ import static java.sql.JDBCType.*;
  * <p>
  * Though not visible in the API, there's a {@link ZoomCanvas} in the scroll pane.
  */
-// TODO: Image make all the load/store buttons/capabilities optional.
+// TODO: SsImage make all the load/store buttons/capabilities optional.
 @SuppressWarnings("serial")
-public class Image extends JPanel implements SSComponent, ScrollPaneConstants {
+public class SsImage extends JPanel implements SSComponent, ScrollPaneConstants {
   // TODO: try to get this initialized
   private Path path;
   /**
@@ -151,7 +151,7 @@ public class Image extends JPanel implements SSComponent, ScrollPaneConstants {
       try {
         image = createDbImageFromFile(tPath);
       } catch (IOException ioe) {
-        SSUtils.reportError(logger, Image.this, "Error accessing image file", tPath, ioe);
+        SSUtils.reportError(logger, SsImage.this, "Error accessing image file", tPath, ioe);
         return;
       } catch (SQLException ex) {
         logger.log(Level.ERROR, (String) null, ex);
@@ -208,7 +208,7 @@ public class Image extends JPanel implements SSComponent, ScrollPaneConstants {
    * @param columnName - column in the rowSet to which the component should
    *                         be bound.
    */
-  public Image(RowsModel rowsModel, String columnName) {
+  public SsImage(RowsModel rowsModel, String columnName) {
     this();
     rowsModel.bind(this, columnName);
   }
@@ -217,7 +217,7 @@ public class Image extends JPanel implements SSComponent, ScrollPaneConstants {
    * Construct a default Image Object.
    */
   @SuppressWarnings("OverridableMethodCallInConstructor")
-  public Image() {
+  public SsImage() {
     //System.setProperty("sun.awt.noerasebackground", "true");
     //Toolkit.getDefaultToolkit().setDynamicLayout(false);
     addComponents();
@@ -582,7 +582,7 @@ public class Image extends JPanel implements SSComponent, ScrollPaneConstants {
     if (readers.hasNext()) {
       ImageReader reader = readers.next();
       formatName = reader.getFormatName(); // Returns "JPEG", "png", etc.
-      //System.out.println("Image Format: " + formatName);
+      //System.out.println("SsImage Format: " + formatName);
 
       // Optionally continue reading the image with the same reader
       //reader.setInput(iis);

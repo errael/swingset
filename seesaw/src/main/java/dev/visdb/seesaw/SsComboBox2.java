@@ -40,7 +40,7 @@
  * Additions and modifications made by Ernie R. Rael are
  * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package dev.visdb.seesaw.core;
+package dev.visdb.seesaw;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -104,7 +104,7 @@ import static java.lang.System.Logger.Level.*;
  * by an {@linkplain SSListItemFormat}. If not specified, keys are auto-generated
  * [0-N); and in this case {@code <K>} must be "Integer" or "Long". In some
  * applications, a key is a key in some database table, see
- * {@linkplain DBComboBox2}. There are convenience methods for using an enum
+ * {@linkplain SsDbComboBox2}. There are convenience methods for using an enum
  * for both "text" and "keys", see
  * {@link #setDisplayValues(java.lang.Class)}.
  * <p>
@@ -128,18 +128,18 @@ import static java.lang.System.Logger.Level.*;
  * Do not use methods that are based on index in the combo box list, unless
  * you're sure...</b>
  * For example use
- * {@link ComboBox2#getChosenKey() getChosenKey()}
+ * {@link SsComboBox2#getChosenKey() getChosenKey()}
  * not something that is based on {@code getSelectedIndex()}.
  * Change the current/selected combo box item with methods
  * such as
- * {@link ComboBox2#setChosenKey(java.lang.Object) setChosenKey(K)}
+ * {@link SsComboBox2#setChosenKey(java.lang.Object) setChosenKey(K)}
  * and
- * {@link ComboBox2#setChosenDisplayValue(java.lang.Object) setChosenDisplayValue(D)}.
- * Use the methods {@link ComboBox2#hasItems() hasItems() } and
- * {@link ComboBox2#hasSelection() hasSelection() } which take into account
+ * {@link SsComboBox2#setChosenDisplayValue(java.lang.Object) setChosenDisplayValue(D)}.
+ * Use the methods {@link SsComboBox2#hasItems() hasItems() } and
+ * {@link SsComboBox2#hasSelection() hasSelection() } which take into account
  * {@code getAllowNull()}.
  * <p>
- * Notice that: {@link ComboBox2#getChosenKey() getChosenKey()}
+ * Notice that: {@link SsComboBox2#getChosenKey() getChosenKey()}
  * returns null in two situations related to {@link #getAllowNull() }
  * <ul>
  *   <li>nothing is selected in this combo box
@@ -180,7 +180,7 @@ import static java.lang.System.Logger.Level.*;
  * @since 4.0.0
  */
 @SuppressWarnings("serial")
-public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComponent {
+public class SsComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComponent {
   /** A convenience for variable declarations. Do not instantiate. */
   protected abstract class Model extends KeyDisplayValueSwingModel<K, D, D2> {}
 
@@ -277,7 +277,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
      * @param jc install model into this
      * @return KeyDisplayValue model
      */
-    protected static <K, D, D2> BaseModel<K, D, D2> install(ComboBox2<K, D, D2> jc) {
+    protected static <K, D, D2> BaseModel<K, D, D2> install(SsComboBox2<K, D, D2> jc) {
       BaseModel<K, D, D2> model = new BaseModel<>();
       AbstractComboBoxListSwingModel.install(jc, model);
 
@@ -317,7 +317,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
      * @param jc install auto completion into this
      * @return KeyDisplayValue model
      */
-    protected static <K, D, D2> BaseGlazedModel<K, D, D2> install(ComboBox2<K, D, D2> jc) {
+    protected static <K, D, D2> BaseGlazedModel<K, D, D2> install(SsComboBox2<K, D, D2> jc) {
       BaseGlazedModel<K, D, D2> model = new BaseGlazedModel<>();
       model.autoComplete = AutoCompleteSupport.install(jc, model.getEventList(), null,
                                                        model.getListItemFormatDelegate());
@@ -505,7 +505,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
   public static final ModelType DEFAULT_MODEL_COMBO2 = ModelType.SWING;
 
   /**
-   * To build a ComboBox2 with the specified parameters.
+   * To build a SsComboBox2 with the specified parameters.
    *
    * @param <K>
    * @param <D>
@@ -554,8 +554,8 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
     @SuppressWarnings("unchecked")
     protected abstract T self();
 
-    /** @return the created ComboBox2 */
-    public abstract ComboBox2<K, D, D2> build();
+    /** @return the created SsComboBox2 */
+    public abstract SsComboBox2<K, D, D2> build();
   }
 
   /**
@@ -571,10 +571,10 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
       return this;
     }
 
-    /** Create ComboBox2 */
+    /** Create SsComboBox2 */
     @Override
-    public ComboBox2<K, D, D2> build() {
-      return new ComboBox2<>(this);
+    public SsComboBox2<K, D, D2> build() {
+      return new SsComboBox2<>(this);
     }
   }
 
@@ -582,7 +582,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
    *
    * @param builder
    */
-  protected ComboBox2(AbstractBuilder<K, D, D2, ?> builder) {
+  protected SsComboBox2(AbstractBuilder<K, D, D2, ?> builder) {
     this(builder.modelType);
     d2DisplayEnabled = builder.d2DisplayEnabled;
 
@@ -596,7 +596,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
    */
   // Keep a default contructor publicly available.
   // TODO: this fails because "K" is not concrete.
-  public ComboBox2() {
+  public SsComboBox2() {
     this(new Builder<>() {});
   }
 
@@ -605,7 +605,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
    * @param modelType whether to use SWING or GLAZED combo model
    */
   @SuppressWarnings("LeakingThisInConstructor")
-  private ComboBox2(ModelType modelType) {
+  private SsComboBox2(ModelType modelType) {
     addItemListener(new ComboBox2ItemListener());
     finishSSCommon();
 
@@ -1757,7 +1757,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
    * @param comboBox combo box from which to remove listeners
    * @return array of ActionListeners removed from combo box (for adding back later)
    */
-  // TODO: Consider passing in ComboBox2 and identifying ComboBox2Listener
+  // TODO: Consider passing in SsComboBox2 and identifying ComboBox2Listener
   static ActionListener[] unregisterAllActionListeners(JComboBox<?> comboBox) {
     final ActionListener[] listeners = comboBox.getActionListeners();
     for (ActionListener listener : listeners) {
@@ -1779,7 +1779,7 @@ public class ComboBox2<K, D, D2> extends JComboBox<SSListItem> implements SSComp
    * @param comboBox combo box for which to add listeners
    * @param listeners array of ActionListners to be
    */
-  // TODO: Consider passing in ComboBox2 and identifying ComboBox2Listener
+  // TODO: Consider passing in SsComboBox2 and identifying ComboBox2Listener
   static void registerAllActionListeners(JComboBox<?> comboBox, ActionListener[] listeners) {
     for (ActionListener listener : listeners) {
       comboBox.addActionListener(listener);

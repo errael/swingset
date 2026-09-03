@@ -751,12 +751,12 @@ public class RowSetOps {
    * @param updatedValue string to be type-converted as needed and updated in
    *                      underlying RowSet column
    * @return actual item written to the database, throws if nothing written
-   * @throws SSSQLNullException thrown if null is not allowed
+   * @throws SqlNullException thrown if null is not allowed
    * @throws SQLException  thrown if a database error is encountered
    * @throws NumberFormatException thrown if unable to parse a string to number format
    */
   public static DbUpdate updateColumnText(SSComponent comp, String updatedValue)
-      throws SSSQLNullException, SQLException, NumberFormatException {
+      throws SqlNullException, SQLException, NumberFormatException {
     checkForceConflict(comp, updatedValue); // TODO: This is only for debug
 
     return updateColumnText(comp, comp.getRowSet(), updatedValue, comp.getColumnIndex(),
@@ -777,7 +777,7 @@ public class RowSetOps {
    *                      underlying RowSet column
    * @param columnIndex   name of the database column
    * @param allowNull 	indicates if Component and underlying column can contain null values
-   * @throws SSSQLNullException thrown if null is not allowed
+   * @throws SqlNullException thrown if null is not allowed
    * @throws SQLException  thrown if a database error is encountered
    * @throws NumberFormatException thrown if unable to parse a string to number format
    * @see <a href="https://download.oracle.com/otn-pub/jcp/jdbc-4_3-mrel3-eval-spec/jdbc4.3-fr-spec.pdf">JDBC 4.3 Specification</a> Appendix B
@@ -785,7 +785,7 @@ public class RowSetOps {
   // TODO: test this and conversions
   private static DbUpdate updateColumnText(SSComponent comp, RowSet rowSet, String updatedValue,
                                            int columnIndex, boolean allowNull)
-      throws SSSQLNullException, SQLException, NumberFormatException {
+      throws SqlNullException, SQLException, NumberFormatException {
     int row = logger.isLoggable(DEBUG) ? rowSet.getRow() : -1;
     logger.log(DEBUG,
                () -> sf("[%s] row %d. Update to: %s. Allow null? [%s]", comp.getColumnForLog(),
@@ -797,7 +797,7 @@ public class RowSetOps {
       // TODO: internal error exception?
       logger.log(ERROR, () -> "Unsupported data type of " + jdbcType.getName() + " for column "
                             + comp.getColumnForLog() + ".");
-      throw new SSSQLUnhandledTypeException(sf("'%s' can't be used as text", jdbcType));
+      throw new SqlUnhandledTypeException(sf("'%s' can't be used as text", jdbcType));
     }
 
     Object dbValue = null;
@@ -844,7 +844,7 @@ public class RowSetOps {
         // TODO: Have a method "CreateMessage(RSC) see also
         //		 SSFormattedTextField, SSCommon
         // NOTE: in following should mention column name
-        throw new SSSQLNullException("Null values are not allowed for this field.");
+        throw new SqlNullException("Null values are not allowed for this field.");
       }
     }
     assert (updatedValue != null);
@@ -882,11 +882,11 @@ public class RowSetOps {
    * @param comp The SSComponent doing the update
    * @param updatedValue value to write to underlying RowSet column
    * @return actual item written to the database, throws if nothing written
-   * @throws SSSQLNullException thrown if null is not allowed
+   * @throws SqlNullException thrown if null is not allowed
    * @throws SQLException  thrown if a database error is encountered
    */
   public static DbUpdate updateColumnObject(SSComponent comp, Object updatedValue)
-      throws SSSQLNullException, SQLException, NumberFormatException {
+      throws SqlNullException, SQLException, NumberFormatException {
     if (updatedValue instanceof String s) {
       // This method doesn't have all the string checks,
       // use updateColumnText if String Object.
@@ -905,7 +905,7 @@ public class RowSetOps {
         rowSet.updateNull(columnIndex);
         return UPDATE_NULL;
       } else
-        throw new SSSQLNullException("NULL not allowed for this field.");
+        throw new SqlNullException("NULL not allowed for this field.");
     }
 
     //_rowSet.updateObject(_columnIndex, _updatedValue);
@@ -935,11 +935,11 @@ public class RowSetOps {
    * @param comp The SSComponent doing the update
    * @param updatedValue Array
    * @return actual item written to the database, throws if nothing written
-   * @throws SSSQLNullException thrown if null is not allowed
+   * @throws SqlNullException thrown if null is not allowed
    * @throws SQLException  thrown if a database error is encountered
    */
   public static DbUpdate updateColumnArray(SSComponent comp, Array updatedValue)
-      throws SSSQLNullException, SQLException {
+      throws SqlNullException, SQLException {
     return updateColumnArray(comp, comp.getRowSet(), updatedValue, comp.getColumnName(),
                              comp.getAllowNull());
   }
@@ -957,13 +957,13 @@ public class RowSetOps {
    * @param dbValue Array
    * @param columnName   name of the database column
    * @param allowNull 	indicates if Component and underlying column can contain null values
-   * @throws SSSQLNullException thrown if null is not allowed
+   * @throws SqlNullException thrown if null is not allowed
    * @throws SQLException  thrown if a database error is encountered
    */
   private static DbUpdate updateColumnArray(@SuppressWarnings("unused") SSComponent comp,
                                             RowSet rowSet, Array dbValue, String columnName,
                                             boolean allowNull)
-      throws SSSQLNullException, SQLException {
+      throws SqlNullException, SQLException {
     logger.log(
         DEBUG,
         () -> "[" + columnName + "]. Update to: " + dbValue + ". Allow null? [" + allowNull + "]");
@@ -980,7 +980,7 @@ public class RowSetOps {
         rowSet.updateNull(columnName);
         return UPDATE_NULL;
       } else
-        throw new SSSQLNullException("NULL not allowed for this field.");
+        throw new SqlNullException("NULL not allowed for this field.");
     }
 
     rowSet.updateArray(columnName, dbValue);

@@ -1,5 +1,6 @@
 /* *****************************************************************************
- * Copyright (C) 2024, Ernie R Rael. All rights reserved.
+ * Copyright (C) 2024, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,43 +27,42 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Contributors:
+ *   Prasanth R. Pasala
+ *   Brian E. Pangburn
+ *   Diego Gil
+ *   Man "Bee" Vo
+ *   Ernie R. Rael
+ * ****************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
 package dev.visdb.seesaw.datasources;
 
-import java.sql.SQLException;
-
 /**
- * Base of all SS specific exceptions
+ * This exception is for unexpected (impossible) exception that comes
+ * across as an SQLException. For example, rowset.getColumnCount(), once
+ * there is a rowset should never happen.
  */
 @SuppressWarnings("serial")
-public class SSSQLException extends SQLException {
+public class SqlRuntimeException extends RuntimeException {
   /**
-   * SSException
-   * @param reason reason
+   * Create exception.
+   * @param message
+   * @param cause
    */
-  public SSSQLException(String reason) {
-    super(reason);
+  public SqlRuntimeException(String message, Throwable cause) {
+    super(message, cause);
   }
 
   /**
-   * SSException
+   * Create exception.
+   * @param cause
    */
-  public SSSQLException() {}
-
-  /**
-   * SSException
-   * @param cause cause
-   */
-  public SSSQLException(Throwable cause) {
+  public SqlRuntimeException(Throwable cause) {
     super(cause);
-  }
-
-  /**
-   * SSException
-   * @param reason reason
-   * @param cause cause
-   */
-  public SSSQLException(String reason, Throwable cause) {
-    super(reason, cause);
   }
 }

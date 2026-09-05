@@ -42,7 +42,8 @@ import com.google.common.collect.MapMaker;
 
 import dev.visdb.seesaw.navigate.RowSetState;
 import dev.visdb.seesaw.utils.JStuff;
-import dev.visdb.seesaw.utils.SSUtils;
+
+import com.nqadmin.swingset.utils.SSUtils;
 
 import static com.nqadmin.swingset.demo.H2Demo.dbUrl;
 import static dev.visdb.seesaw.utils.JStuff.sf;

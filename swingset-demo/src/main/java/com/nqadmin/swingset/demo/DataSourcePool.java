@@ -70,7 +70,8 @@ import org.h2.jdbcx.JdbcDataSource;
 import com.nqadmin.swingset.demo.MainClass.H2Trace;
 
 import dev.visdb.seesaw.utils.JStuff;
-import dev.visdb.seesaw.utils.SSUtils;
+
+import com.nqadmin.swingset.utils.SSUtils;
 
 import static dev.visdb.seesaw.utils.CentralLookup.defLookup;
 import static dev.visdb.seesaw.utils.JStuff.sf;

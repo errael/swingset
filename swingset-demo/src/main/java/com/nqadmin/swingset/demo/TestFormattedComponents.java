@@ -57,16 +57,16 @@ import com.nqadmin.swingset.utils.SSSyncManager;
 
 import dev.visdb.seesaw.datasources.DbOps;
 import dev.visdb.seesaw.datasources.products.DbOpsBase;
-import dev.visdb.seesaw.formatting.SSCurrencyField;
-import dev.visdb.seesaw.formatting.SSDateField;
-import dev.visdb.seesaw.formatting.SSFormat;
-import dev.visdb.seesaw.formatting.SSFormattedTextField;
-import dev.visdb.seesaw.formatting.SSIntegerField;
-import dev.visdb.seesaw.formatting.SSNumericField;
-import dev.visdb.seesaw.formatting.SSPercentField;
-import dev.visdb.seesaw.formatting.SSSSNField;
-import dev.visdb.seesaw.formatting.SSTimeField;
-import dev.visdb.seesaw.formatting.SSTimestampField;
+import dev.visdb.seesaw.formatting.SsCurrencyField;
+import dev.visdb.seesaw.formatting.SsDateField;
+import dev.visdb.seesaw.formatting.SsFormat;
+import dev.visdb.seesaw.formatting.SsFormattedTextField;
+import dev.visdb.seesaw.formatting.SsIntegerField;
+import dev.visdb.seesaw.formatting.SsNumericField;
+import dev.visdb.seesaw.formatting.SsPercentField;
+import dev.visdb.seesaw.formatting.SsSSNField;
+import dev.visdb.seesaw.formatting.SsTimeField;
+import dev.visdb.seesaw.formatting.SsTimestampField;
 import dev.visdb.seesaw.navigate.RowsModel;
 import dev.visdb.seesaw.utils.JStuff;
 
@@ -93,18 +93,18 @@ public class TestFormattedComponents extends JFrame {
   JLabel lblSSDBComboNav = new JLabel("SSDBComboNav"); // SSDBComboBox used just for navigation
   JLabel lblSwingSetFormattedTestPK = new JLabel("Record ID");
   //JLabel lblSSCuitField = new JLabel("SSCuitField");
-  JLabel lblSSCurrencyField = new JLabel("SSCurrencyField");
+  JLabel lblSSCurrencyField = new JLabel("SsCurrencyField");
   JLabel lblSSCurrencyFieldNull = new JLabel("SSCurrencyFieldNull");
-  JLabel lblSSDateField = new JLabel("SSDateField");
+  JLabel lblSSDateField = new JLabel("SsDateField");
   JLabel lblSSDateFieldNull = new JLabel("SSDateFieldNull");
-  JLabel lblSSFormattedTextField = new JLabel("SSFormattedTextField");
-  JLabel lblSSIntegerField = new JLabel("SSIntegerField");
+  JLabel lblSSFormattedTextField = new JLabel("SsFormattedTextField");
+  JLabel lblSSIntegerField = new JLabel("SsIntegerField");
   JLabel lblSSIntegerFieldNull = new JLabel("SSIntegerFieldNull");
-  JLabel lblSSNumericField = new JLabel("SSNumericField");
-  JLabel lblSSPercentField = new JLabel("SSPercentField");
-  JLabel lblSSSSNField = new JLabel("SSSSNField");
-  JLabel lblSSTimeField = new JLabel("SSTimeField");
-  JLabel lblSSTimestampField = new JLabel("SSTimestampField");
+  JLabel lblSSNumericField = new JLabel("SsNumericField");
+  JLabel lblSSPercentField = new JLabel("SsPercentField");
+  JLabel lblSSSSNField = new JLabel("SsSSNField");
+  JLabel lblSSTimeField = new JLabel("SsTimeField");
+  JLabel lblSSTimestampField = new JLabel("SsTimestampField");
   JLabel lblDebugField = new JLabel("DebugField");
   JLabel lblDebugFieldNull = new JLabel("DebugFieldNull");
 
@@ -113,18 +113,18 @@ public class TestFormattedComponents extends JFrame {
    */
   SSTextField txtSwingSetFormattedTestPK = new SSTextField();
   //SSCuitField fmtSSCuitField = new SSCuitField();
-  SSCurrencyField fmtSSCurrencyField = new SSCurrencyField();
-  SSCurrencyField fmtSSCurrencyFieldNull = new SSCurrencyField();
-  SSDateField fmtSSDateField = new SSDateField(SSFormat.DATE_MMDDYYYY_SLASH);
-  SSDateField fmtSSDateFieldNull = new SSDateField(SSFormat.DATE_YYYYMMDD_STROKE);
-  SSFormattedTextField fmtSSFormattedTextField = new SSFormattedTextField();
-  SSIntegerField fmtSSIntegerField = new SSIntegerField();
-  SSIntegerField fmtSSIntegerFieldNull = new SSIntegerField();
-  SSNumericField fmtSSNumericField = new SSNumericField();
-  SSPercentField fmtSSPercentField = new SSPercentField();
-  SSSSNField fmtSSSSNField = new SSSSNField();
-  SSTimeField fmtSSTimeField = new SSTimeField();
-  SSTimestampField fmtSSTimestampField = new SSTimestampField();
+  SsCurrencyField fmtSSCurrencyField = new SsCurrencyField();
+  SsCurrencyField fmtSSCurrencyFieldNull = new SsCurrencyField();
+  SsDateField fmtSSDateField = new SsDateField(SsFormat.DATE_MMDDYYYY_SLASH);
+  SsDateField fmtSSDateFieldNull = new SsDateField(SsFormat.DATE_YYYYMMDD_STROKE);
+  SsFormattedTextField fmtSSFormattedTextField = new SsFormattedTextField();
+  SsIntegerField fmtSSIntegerField = new SsIntegerField();
+  SsIntegerField fmtSSIntegerFieldNull = new SsIntegerField();
+  SsNumericField fmtSSNumericField = new SsNumericField();
+  SsPercentField fmtSSPercentField = new SsPercentField();
+  SsSSNField fmtSSSSNField = new SsSSNField();
+  SsTimeField fmtSSTimeField = new SsTimeField();
+  SsTimestampField fmtSSTimestampField = new SsTimestampField();
   DebugField fmtDebugField = new DebugField();
   DebugField fmtDebugFieldNull = new DebugField();
 

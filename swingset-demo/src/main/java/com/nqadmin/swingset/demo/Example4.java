@@ -64,7 +64,8 @@ import dev.visdb.seesaw.datasources.DbOps;
 import dev.visdb.seesaw.datasources.products.DbOpsBase;
 import dev.visdb.seesaw.navigate.RowsModel;
 import dev.visdb.seesaw.utils.JStuff;
-import dev.visdb.seesaw.utils.SSUtils;
+
+import com.nqadmin.swingset.utils.SSUtils;
 
 /**
  * This example displays data from the part_data table.

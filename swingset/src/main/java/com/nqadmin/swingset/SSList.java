@@ -1,5 +1,6 @@
-/* *****************************************************************************
- * Copyright (C) 2024, Ernie R Rael. All rights reserved.
+/*******************************************************************************
+ * Copyright (C) 2003-2021, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,59 +27,59 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Contributors:
+ *   Prasanth R. Pasala
+ *   Brian E. Pangburn
+ *   Diego Gil
+ *   Man "Bee" Vo
+ *   Ernie R. Rael
+ ******************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
  * ****************************************************************************/
-package com.nqadmin.swingset.demo;
+package com.nqadmin.swingset;
 
-import javax.swing.text.DefaultFormatterFactory;
+import java.sql.JDBCType;
 
-import dev.visdb.seesaw.formatting.Field;
-import dev.visdb.seesaw.formatting.SsFormat;
-import dev.visdb.seesaw.formatting.MaskFormatterFactory;
-
-import static dev.visdb.seesaw.formatting.SsFormat.CUSTOM;
+import dev.visdb.seesaw.SsList1;
+import dev.visdb.seesaw.models.DbCollection;
+import dev.visdb.seesaw.utils.SsComponent;
 
 /**
- * A simple field for debug that is not in the formatting package.
+ * See {@link SsList1}.
  */
+// TODO: Long or Integer?
 @SuppressWarnings("serial")
-public class DebugField extends Field {
+public class SSList extends SsList1<Object, String> implements SsComponent {
   /**
-   *  Creates a default SSDateField object using the default date format.
+   * Creates an object of SSList with key type of {@code JDBCType.INTEGER}.
    */
-  public DebugField() {
-    this(CUSTOM);
+  public SSList() {
+    // 2022-05-04: Changing from JDBCType.NULL to INTEGER as that will be the most likely
+    //  key type and NULL is known to generate errors.
+    this(JDBCType.INTEGER);
   }
 
   /**
-   *  Creates a new instance of SSDateField with the specified format.
-   *  @param format - an enum format to be used while the date field is in edit mode
+   * Creates a SsList1 with default
+of {@link dev.visdb.seesaw.models.SSDbArray}
+   * of specified jdbcType.
+   *
+   * @param jdbcType type of key of database elements
    */
-  public DebugField(SsFormat format) {
-    this(createFormatterFactory(format));
+  public SSList(JDBCType jdbcType) {
+    super(jdbcType);
   }
 
   /**
-   * Creates an object of SSDateField with the specified formatter factory
-   * @param factory - formatter factory to be used
+   * Creates a SsList1 with specified model.
+   *
+   * @param collectionModel model to read/write the database
    */
-  public DebugField(AbstractFormatterFactory factory) {
-    super(factory);
-  }
-
-  @Override
-  public void cleanField() {
-    setValue(getAllowNull() ? null : 777);
-  }
-
-  /**
-   * Create mask formatter factory with specified format pattern.
-   * @param _format - Format to be used for date while in editing mode.
-   * @return a DefaultFormatterFactory for the specified date format
-   */
-  public static DefaultFormatterFactory createFormatterFactory(SsFormat _format) {
-    SsFormat format = SsFormat.getActualFormat(_format);
-    String formatMask = "###";
-
-    return new MaskFormatterFactory.Builder<>(formatMask).ssFormat(format).build();
+  public SSList(DbCollection collectionModel) {
+    super(collectionModel);
   }
 }

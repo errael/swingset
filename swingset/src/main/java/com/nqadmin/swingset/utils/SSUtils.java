@@ -35,88 +35,211 @@
  *   Man "Bee" Vo
  *   Ernie R. Rael
  * ****************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024-2026, Ernie R. Rael. All rights reserved.
+ * ****************************************************************************/
 package com.nqadmin.swingset.utils;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.awt.Container;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.util.StackLocatorUtil;
+import javax.sql.RowSet;
+import javax.sql.rowset.CachedRowSet;
+
+import dev.visdb.seesaw.datasources.DbSupport;
+import dev.visdb.seesaw.navigate.RowsModel;
+import dev.visdb.seesaw.utils.SsComponent;
+import dev.visdb.seesaw.utils.SsUtils;
+import dev.visdb.seesaw.utils.SsUtils.KeyInfo;
+
 
 /**
- *
- * @author err
+ * General.
  */
 public class SSUtils {
-	private SSUtils() {}
+  private SSUtils() {}
 
-	/**
-	 * This is similar to LogManager.getLogger(), except that
-	 * if getLogger fails then this method returns the root logger.
-	 * So this is suitable for UI components that might get instantiated
-	 * by a gui builder.
-	 *
-	 * See: https://github.com/bpangburn/swingset/pull/123
-	 * 
-	 * @return the Logger
-	 */
-	public static Logger getLogger() {
-		// NOTE: this can be re-implemented by examining
-		// new Throwable().getStackTrace();
-		Logger logger;
-		try {
-			return LogManager.getLogger(StackLocatorUtil.getCallerClass(2));
-		} catch(UnsupportedOperationException ex) {}
-		logger = LogManager.getRootLogger();
-		// Note: can check for root logger with
-		// logger.getName().isEmpty()
-		logger.error("Using RootLogger", new Throwable());
-		return logger;
-	}
+  /**
+   * Temporary for hiding SsCommon; used from SsDBComboBox.
+   * @param comp component to update
+   */
+  public static void updateSsComponent_HACK(SsComponent comp) {
+    SsUtils.updateSsComponent_HACK(comp);
+  }
 
-	/**
-	 * Returns an unmodifiable list containing an arbitrary number of elements.
-	 * This is not particularly efficient for small lists, but until java-9...
-	 * @param <T> type of elements in the list
-	 * @param args the elements of the list
-	 * @return list
-	 */
-	@SafeVarargs
-	public static <T> List<T> listOf(T... args) {
-		Object[] arr = Arrays.copyOf(args, args.length);
-		@SuppressWarnings("unchecked")
-		List<T> list = (List<T>) Collections.unmodifiableList(Arrays.asList(arr));
-		return list;
-	}
-	////////////////////////////////////////////////////////////////////////////
-	//
-	// Debug Support
-	//
+  /**
+   * Use this if you want a 1-1 correspondence between {@code RowSet} and {@code RowsModel};
+   * for 1-1 only this method should be used.
+   * If an existing RowsModel for the RowSet is
+   * not found, a new RowsModel is created.
+   * If {@link RowsModel#create(javax.sql.RowSet) }
+   * is used multiple RowsModel can be created for the same RowSet;
+   * and see {@link RowsModel#getActiveRowModels(javax.sql.RowSet) }
+   * <p>
+   * Can also use as a transition aid to RowsModel.
+   * @param rs
+   * @return
+   */
+  // TODO: could throw exception if more than one model for specified RowSet.
+  public static RowsModel findRowsModel(RowSet rs) {
+    return SsUtils.findRowsModel(rs);
+  }
 
-	/**
-	 * Return a unique name for an Object, for example "String@89AB".
-	 * Name is SimpleClassName followed by identityHashCode in hex.
-	 * Used primarily for debug messages.
-	 * @param o The Object
-	 * @return unique name for the object or "null"
-	 */
-	// TODO: put this in utils/SSUtil
-	public static String objectID(Object o) {
-		if (o == null) {
-			return "null";
-		}
-		return String.format("%s@%X", o.getClass().getSimpleName(), System.identityHashCode(o));
-	}
+  /**
+   * Check if the SsComponent's listener is added for debug/logging.
+   * @param comp
+   * @return true if the listener is added
+   */
+  public static boolean isSsComponentListenerAddedDebug(SsComponent comp) {
+    return SsUtils.isSsComponentListenerAddedDebug(comp);
+  }
 
-	////////////////////////////////////////////////////////////////////////////
-	//
-	// EventBus
-	//
-	//     posting Events
-	//     finding a bus
-	//
-	// TODO:
+  /** Put this in the global lookup to create debug row set listeners */
+  public static class DebugRowSetListenerFlag {}
 
+  // public static Container findRoot(Component c) {
+  // 	return null;
+  // }
+
+  /**
+   * Notify the user of something...
+   */
+  // TODO: add option to flash window/panel...
+  public static void beep() {
+    SsUtils.beep();
+    // TODO:
+    // UIManager.getLookAndFeel().provideErrorFeedback(JFormattedTextField.this);
+  }
+
+  /**
+   * Get the size of a map taking into account possible weak keys.
+   *
+   * @param map get size of this map
+   * @return map size
+   */
+  @SuppressWarnings("null")
+  public static int size(Map<?, ?> map) {
+    return SsUtils.size(map);
+  }
+
+  /**
+   * Returns the lookup's current DbSupport.
+   * Very fast; it listens.
+   * @return DbSupport
+   */
+  public static DbSupport dbSupport() {
+    return SsUtils.dbSupport();
+  }
+
+  /**
+   * Setup a {@linkplain CachedRowSet}'s primary keys, use the component's
+   * row set to get the database table's keys.
+   * If not a CachedRowSet or the key is already set, do nothing.
+   * Note a JoinRowSet is skipped; only want to set keys for single table.
+   * @param comp component
+   */
+  // TODO: Could have an array of primary keys, one entry per column.
+  //		 Could this be needed for joins?
+  public static void setupDefaultPrimaryKeys(SsComponent comp) {
+    SsUtils.setupDefaultPrimaryKeys(comp);
+  }
+
+  // TODO: keys: should spec catalog/schema?
+  /**
+   * @param dbMetaData
+   * @param catalog
+   * @param schema
+   * @param tableName
+   * @return
+   * @throws SQLException
+   */
+  public static List<KeyInfo> getPrimaryKeyInfoForTable(DatabaseMetaData dbMetaData, String catalog,
+                                                        String schema, String tableName)
+      throws SQLException {
+    return SsUtils.getPrimaryKeyInfoForTable(dbMetaData, catalog, schema, tableName);
+  }
+
+  /**
+   *
+   * @param rs
+   * @param columnName
+   * @return
+   * @throws SQLException
+   */
+
+  public static List<KeyInfo> getPrimaryKeyInfoForTable(RowSet rs, String columnName)
+      throws SQLException {
+    return getPrimaryKeyInfoForTable(rs, rs.findColumn(columnName));
+  }
+  /**
+   * Find {@link KeyInfo} for table associated with the specified column.
+   * Starting with the column's RowSet, get the dbMetaData, determine keys.
+   * @param rs
+   * @param colIdx
+   * @return
+   * @throws SQLException
+   */
+  // TODO: isKey: lookup specializations for databases to access special result set info.
+  //public static List<KeyInfo> getPrimaryKeyInfoForTable(RSC comp)
+  public static List<KeyInfo> getPrimaryKeyInfoForTable(RowSet rs, int colIdx) throws SQLException {
+    return SsUtils.getPrimaryKeyInfoForTable(rs, colIdx);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Debug Support
+  //
+
+  /**
+   * This is for toString() of an SsComponent, rather than the JComponents string.
+   * @param comp string for this
+   * @return string from component
+   */
+  public static String ssComponentToString(SsComponent comp) {
+    return SsUtils.ssComponentToString(comp);
+  }
+
+  /**
+   * Return a unique name for an Object, for example "String@89AB".
+   * Name is SimpleClassName followed by identityHashCode in hex.
+   * Used primarily for debug messages.
+   * @param o The Object
+   * @return unique name for the object or "null"
+   */
+  // TODO: put this in utils/SsUtil
+  public static String objectID(Object o) {
+    return SsUtils.objectID(o);
+  }
+
+  /**
+   * Return the name of the table where column 1 came from.
+   * @param rs
+   * @return
+   */
+  public static String tableName(RowSet rs) {
+    return SsUtils.tableName(rs);
+  }
+  /**
+   * @return true if junit is running.
+   */
+  public static boolean isJunit() {
+    return SsUtils.isJunit();
+  }
+
+  /** Set when junit tests set up a logger. */
+  public static String JUNIT_TEST_LOGGING = SsUtils.JUNIT_TEST_LOGGING;
+
+  /**
+   * true if in JUnit and NOT using JUnit logging
+   * @return
+   */
+  public static boolean isJunitPrint() {
+    return SsUtils.isJunitPrint();
+  }
 }

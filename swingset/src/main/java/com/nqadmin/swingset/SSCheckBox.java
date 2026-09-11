@@ -1,21 +1,21 @@
 /*******************************************************************************
  * Copyright (C) 2003-2021, Prasanth R. Pasala, Brian E. Pangburn, & The Pangburn Group
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright notice,
  *    this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * 3. Neither the name of the copyright holder nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -27,7 +27,7 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * Contributors:
  *   Prasanth R. Pasala
  *   Brian E. Pangburn
@@ -35,248 +35,71 @@
  *   Man "Bee" Vo
  *   Ernie R. Rael
  ******************************************************************************/
+/* *****************************************************************************
+ * The conditions in the above copyright notice apply to this copyright notice.
+ * Additions and modifications made by Ernie R. Rael are
+ * copyright (C) 2024-2025, Ernie R. Rael. All rights reserved.
+ * ****************************************************************************/
 package com.nqadmin.swingset;
 
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.Serializable;
-import java.sql.SQLException;
-
 import javax.sql.RowSet;
-import javax.swing.JCheckBox;
 
-import org.apache.logging.log4j.Logger;
+import dev.visdb.seesaw.SsCheckBox;
+import dev.visdb.seesaw.navigate.RowsModel;
 
-import com.nqadmin.swingset.utils.SSCommon;
-import com.nqadmin.swingset.utils.SSComponentInterface;
-import com.nqadmin.swingset.utils.SSUtils;
-
-// SSCheckBox.java
-//
-// SwingSet - Open Toolkit For Making Swing Controls Database-Aware
+import static com.nqadmin.swingset.utils.SSUtils.findRowsModel;
 
 /**
- * Used to display the boolean values stored in the database. The SSCheckBox can
- * be bound to a numeric or boolean database column. Currently, binding to a
- * boolean column has been tested only with PostgreSQL. If bound to a numeric
- * database column, a checked SSCheckBox returns a '1' to the database and an
- * unchecked SSCheckBox will returns a '0'. In the future an option may be added
- * to allow the user to specify the values returned for the checked and
- * unchecked SSCheckBox states.
+ * Used to display values stored in the database as a boolean.
+ * The SSCheckBox can be bound to a numeric or boolean database column.
+ * The boolean value is converted to the data base type by the
+ * {@linkplain #setColumnObject(java.lang.Object) } infrastructure.
+ * Currently, Dec 2024, if bound to a numeric database column, a checked
+ * SSCheckBox puts a '1' to the database and an unchecked SSCheckBox puts a '0'.
  * <p>
- * Note that for naming consistency, SSCheckBox replaced SSDBCheckBox
- * 01-10-2005.
+ * TODO: In the future an option may be added to allow the user to specify the
+ * values returned for the checked and unchecked SSCheckBox states.
  */
-public class SSCheckBox extends JCheckBox implements SSComponentInterface {
+@SuppressWarnings("serial")
+public class SSCheckBox extends SsCheckBox {
+  /**
+   * Creates an object of SSCheckBox.
+   */
+  public SSCheckBox() {
+    super();
+  }
 
-	/**
-	 * Listener(s) for the component's value used to propagate changes back to bound
-	 * database column
-	 */
-	protected class SSCheckBoxListener implements ItemListener, Serializable {
+  /**
+   * Creates an object of SSCheckBox.
+   *
+   * @param _text Checkbox label
+   */
+  public SSCheckBox(String _text) {
+    super(_text);
+  }
 
-		/**
-		 * unique serial id
-		 */
-		private static final long serialVersionUID = -8006881399306841024L;
+  /**
+   * Creates an object of SSCheckBox binding it to the specified column in the
+   * given RowSet.
+   *
+   * @param rowsModel        datasource to be used.
+   * @param columnName name of the column to which this check box should be
+   */
+  public SSCheckBox(RowsModel rowsModel, String columnName) {
+    super(rowsModel, columnName);
+  }
 
-		@Override
-		public void itemStateChanged(final ItemEvent ie) {
-
-			ssCommon.removeRowSetListener();
-
-			if (((JCheckBox) ie.getSource()).isSelected()) {
-				// switch(SSCheckBox.this.columnType) {
-				switch (getBoundColumnType()) {
-				case java.sql.Types.INTEGER:
-				case java.sql.Types.SMALLINT:
-				case java.sql.Types.TINYINT:
-					// SSCheckBox.this.textField.setText(String.valueOf(SSCheckBox.this.CHECKED));
-					setBoundColumnText(String.valueOf(CHECKED));
-					break;
-				case java.sql.Types.BIT:
-				case java.sql.Types.BOOLEAN:
-					// SSCheckBox.this.textField.setText(BOOLEAN_CHECKED);
-					setBoundColumnText(BOOLEAN_CHECKED);
-					break;
-				default:
-					logger.warn(getColumnForLog() + ": Unknown column type of " + getBoundColumnType());
-					break;
-				}
-			} else {
-				// switch(SSCheckBox.this.columnType) {
-				switch (getBoundColumnType()) {
-				case java.sql.Types.INTEGER:
-				case java.sql.Types.SMALLINT:
-				case java.sql.Types.TINYINT:
-					setBoundColumnText(String.valueOf(UNCHECKED));
-					break;
-				case java.sql.Types.BIT:
-				case java.sql.Types.BOOLEAN:
-					setBoundColumnText(BOOLEAN_UNCHECKED);
-					break;
-				default:
-					logger.warn(getColumnForLog() + ": Unknown column type of " + getBoundColumnType());
-					break;
-				}
-			}
-
-			ssCommon.addRowSetListener();
-		}
-
-	} // end private class SSCheckBoxListener
-		// {
-
-	/**
-	 * Checked value for Boolean columns.
-	 */
-	protected static String BOOLEAN_CHECKED = "true";
-
-	/**
-	 * Unchecked value for Boolean columns.
-	 */
-	protected static String BOOLEAN_UNCHECKED = "false";
-
-	/**
-	 * Log4j Logger for component
-	 */
-	private static Logger logger = SSUtils.getLogger();
-
-	/**
-	 * unique serial id
-	 */
-	private static final long serialVersionUID = -1204307502900668225L;
-
-	/**
-	 * Checked value for numeric columns.
-	 */
-	protected int CHECKED = 1;
-
-	/**
-	 * Common fields shared across SwingSet components
-	 */
-	protected SSCommon ssCommon = new SSCommon(this);
-
-	/**
-	 * Unchecked value for numeric columns.
-	 */
-	protected int UNCHECKED = 0;
-
-	/**
-	 * Creates an object of SSCheckBox.
-	 */
-	public SSCheckBox() {
-		// Note that call to parent default constructor is implicit.
-		//super();
-	}
-
-	/**
-	 * Creates an object of SSCheckBox binding it so the specified column in the
-	 * given RowSet.
-	 *
-	 * @param _rowSet        datasource to be used.
-	 * @param _boundColumnName name of the column to which this check box should be
-	 *                         bound
-	 *
-	 * @throws SQLException - if a database access error occurs
-	 */
-	public SSCheckBox(final RowSet _rowSet, final String _boundColumnName) throws java.sql.SQLException {
-		this();
-		bind(_rowSet, _boundColumnName);
-	}
-
-	/**
-	 * Creates an object of SSCheckBox.
-	 *
-	 * @param _text Checkbox label
-	 */
-	public SSCheckBox(final String _text) {
-		super(_text);
-	}
-
-	/**
-	 * Method to allow Developer to add functionality when SwingSet component is
-	 * instantiated.
-	 * <p>
-	 * It will actually be called from SSCommon.init() once the SSCommon data member
-	 * is instantiated.
-	 */
-	@Override
-	public void customInit() {
-		// NOTHING TO DO
-
-	}
-
-	/**
-	 * Returns the ssCommon data member for the current Swingset component.
-	 *
-	 * @return shared/common SwingSet component data and methods
-	 */
-	@Override
-	public SSCommon getSSCommon() {
-		return ssCommon;
-	}
-	
-	/**
-	 * {@inheritDoc }
-	 */
-	@Override
-	public SSCheckBoxListener getSSComponentListener() {
-		return new SSCheckBoxListener();
-	}
-
-	/**
-	 * Sets the SSCommon data member for the current Swingset Component.
-	 *
-	 * @param _ssCommon shared/common SwingSet component data and methods
-	 */
-	@Override
-	public void setSSCommon(final SSCommon _ssCommon) {
-		ssCommon = _ssCommon;
-
-	}
-
-	/**
-	 * Updates the value stored and displayed in the SwingSet component based on
-	 * getBoundColumnText()
-	 * <p>
-	 * Call to this method should be coming from SSCommon and should already have
-	 * the Component listener removed
-	 */
-	@Override
-	public void updateSSComponent() {
-		// TODO Modify this class similar to updateSSComponent() in SSFormattedTextField and only allow JDBC types that convert to Long, Integer, Boolean
-		
-		final String text = getBoundColumnText();
-		logger.debug("{}: getBoundColumnText() - " + text, () -> getColumnForLog());
-
-		// SELECT/DESELECT BASED ON UNDERLYING SQL TYPE
-		switch (getBoundColumnType()) {
-		case java.sql.Types.INTEGER:
-		case java.sql.Types.SMALLINT:
-		case java.sql.Types.TINYINT:
-			// SET THE CHECK BOX BASED ON THE VALUE IN ROWSET
-			if (String.valueOf(CHECKED).equals(text)) {
-				setSelected(true);
-			} else {
-				setSelected(false);
-			}
-			break;
-
-		case java.sql.Types.BIT:
-		case java.sql.Types.BOOLEAN:
-			// SET THE CHECK BOX BASED ON THE VALUE IN TEXT FIELD
-			if (BOOLEAN_CHECKED.equals(text)) {
-				setSelected(true);
-			} else {
-				setSelected(false);
-			}
-			break;
-
-		default:
-			break;
-		}
-
-	} // end protected void updateSSComponent() {
+  /**
+   * Creates an object of SSCheckBox binding it to the specified column in the
+   * given RowSet.
+   *
+   * @param _rowSet        datasource to be used.
+   * @param _boundColumnName name of the column to which this check box should be
+   * @deprecated use RowsModel insted of RowSet
+   */
+  @Deprecated
+  public SSCheckBox(RowSet _rowSet, String _boundColumnName) {
+    super(findRowsModel(_rowSet), _boundColumnName);
+  }
 
 } // end public class SSCheckBox

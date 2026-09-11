@@ -1,0 +1,1064 @@
+
+================================================================================
+
+Names case conversion. Per dbms/platform plugin. Maybe only needed for metadata
+access. For example, H2 converts column_name to COLUMN_NAME. Currently using
+map with case insensitive key. See RowSetState TreeMap
+
+DBMS plugin for interpretation of SQL Exceptions to assist in better messages
+and/or error handling. For example, determine if error is a constraint violation
+and print the violated constraint.
+
+Introduce SSUtils.randomSQLException(ex, logger) for use when an exception is
+"impossible", for example rs.getRow(). Not sure what to do with it.
+Send email? Dialog?
+
+RowsModel.getNavCombo() needed? used? How is NavCombo set?
+multiple nav combos?
+
+create DBComboBox1?
+
+SSCommon.checkRowOK doesn't check canModify. Rename verifyCanModifyRow.
+    Note hasActiveRow renamed to onActiveRow
+    rowsModel.containsRows() vs hasActiveRow vs I think there's others.
+    SSCommon().checkRowOK?
+
+    Group static methods for rowset checking... hasActiveRow, other
+    There's navigate/Utils.hasActiveRow.
+    RowsModel might have some.
+
+================================================================================
+
+Could add "centerImage" popup action.
+Put more code from Image to ZoomCanvas.
+Partition bestFit/updateZoom to move some of it into ZoomCanvas.
+
+================================================================================
+
+setColumn()/getColumn() allow to pass in reader/writer? Consider ConsumerSQL.
+Something in RowSetOps/SSComponent. Why is it needed? 2026/05
+
+================================================================================
+
+How can getGeneratedKeys work with preInsertOps? Use instead of key stuff?
+Probably some DbSupport...
+
+getGeneratedKeys - search: jdbc getgeneratedkeys
+    The JDBC Statement.getGeneratedKeys() method retrieves automatically generated
+    values (like AUTO_INCREMENT or IDENTITY primary keys) created after executing an
+    INSERT statement. Using this method prevents you from having to make a second,
+    slow query to the database just to find out the ID of a newly added row.
+
+    search has examples
+
+================================================================================
+
+Update the test databases with current dates: 2025-2027
+
+================================================================================
+
+API to control behavior of formatted text field. COMMIT_OR_REVERT...
+
+Need to come up with an API that can be applied to both formatted
+and non-formatted text fields. In fact to any SSComponent in general.
+But some fields can never be in an error state, eg combo.
+
+Note that JFormattedTextField has "ESC" to cancel/remove changes.
+How should this interact with undo/redo? Get rid of and only use undo?
+Use ESC with any field to remove changes; and also clear the undo/redo stack?
+
+API options
+-----------
+
+- lock in field if error: true/false
+    Single global that controls all fields? Have a setting per SSComponent?
+    Have a global settings and a per component override?
+
+- ESC handling options
+
+    - after ESC about undo/redo stack the curIdx is set to BottomOfStack.
+      Should the stack be cleared?
+
+
+Other options and/or variants?
+
+================================================================================
+
+TextStyles
+    - YAML?
+    - jackson handles both yaml and json.
+    - Isn't json now a subset of yaml?
+
+decorateText/TextDecorator
+    Issues with preffered size? Adjust size dyncamically?
+    Setting sizes while setting up components seems best.
+    Could look at all styles for ComponentState, pick the biggest font to size;
+    or at least suggest a size/range-of-sizes.
+
+    Eventually define a factory to create Decorators?
+
+    Minimize/optimize calling ValidateAll and decorate and decorate text.
+    Cache current state. But it's interactive and don't want to complicate
+    things and have decorator get out of sync...
+
+    TODO: Take an existing style, add/remove stuff to make a new style,
+          actually, that's just the inheritance scheme.
+
+Could
+    - Should there be a mechanism to track/listen changes in ComponentState?
+    - Cache currentState in ComponentStateTextDecorator?
+    - replaceStyle? RemoveStyle
+
+================================================================================
+
+
+================================================================================
+
+Currently disabled. SSCommon.isRestoreOnError().  Inconsistently used:
+
+================================================================================
+
+Use metadata for a default implementation of DbOpsCustomizer pre/post ops.
+    - E.g. automatically(/assist) key generation
+
+Relationship between DbOps and NavigateState settings (like canInsert),
+when DbOps are set want to do navState.updateActionState.
+But there's some idea that DbOps should be stateless.
+
+if updateActionState shows can not update, then disable components.
+post some kind of event when updatable is set/cleared.
+Expose the navState.canInsert/Delete/Update private methods.
+
+If update disable, don't want to disable component, because hard to read.
+Maybe a badge, that says edit row disabled.
+
+If !canUpdate(), would like to beep() and not change components.
+
+Would like to have DbOpsCustomizerImpl automatically find ROOT container;
+then it would be stateless and can be shared.
+  - only used for performPreInsertOps/cleanComponents
+  - Maybe could use getfocusedcomponent?
+    Probably not.
+  - When is it used?
+    Is it used when the caller has a ui hook?
+performPreInsertOps could take a JComponent, and search up for window.
+
+For performPreInsertOps only allow JdbcRowSet, CachedRowSet (but not
+FilteredRowSet, JoinRowSet, WebRowSet).
+
+Maybe SSDBSupport.getDefault().isWritableType(RowSet rs)
+Better SSSupport static what is handled by SS lib. Makes it easier to find
+dependencies on library capabilities.
+interface SSSupport {
+    def boolean isWritableType(RowSet rs) {
+        return switch (rs) {
+        case FilteredRowSet, JoinRowSet, WebRowSet _ -> false;
+        case JdbcRowSet _ -> true;
+        case CachedRowSet _ -> true;
+        default -> false;
+        }
+    }
+}
+
+Might want "interface RootContainer" to use a the value of the JComponent
+client property. Could have a variety of methods.
+
+Knowing the root container may help to automate using SimpleValidation.
+
+================================================================================
+
+Performance note. A lot of of dbOps.perform*Ops is to re-execute the query
+after insert/delete so that that the resultSet has all the rows. Could be
+expensive. (A lot cheaper than the engineering time to try an keep things
+in sync without accessing the database). H2 does this. There's metadata for
+whether or not added rows are visible in result set.
+
+There is metadata
+    boolean ownInsertsAreVisible(int) throws SQLException
+if this is true, then it looks like the re-execute could be avoided. 
+
+After an insert, where the row shows up is database dependent and might take
+into account keys. There probably should be something in DbOpsCustomizer
+to help find the row.
+
+================================================================================
+
+Operate without needing the count of rows, show "?" in the navigator.
+
+================================================================================
+
+DbMetaDataCache
+
+Note: some information is not necessarily safe to cache.
+google search: "with jdbc is it safe to cache databasemetadata"
+
+Make this a selective cache. In particular Static/Driver info,
+capabilities/Limits. But not tables & Column details.
+Then no worry about needing to flush in some cases.
+
+Grab only what's needed for DbOpsCustomizer. At least for now.
+
+
+Using metadata to detect deleted rows. Could filter without re-executing query.
+    DatabaseMetaData.ownDeletesAreVisible vs DatabaseMetaData.deletesAreDetected Controversy
+    https://stackoverflow.com/questions/38214241/databasemetadata-owndeletesarevisible-vs-databasemetadata-deletesaredetected-con
+
+================================================================================
+
+Support/assistance for not querying database from EventQueue and/or
+non-intrusive dialog with please wait (but only if somethings taking too long)
+    - When waiting for a database op to complete how about
+      - disable any fields associated with rowset affecte by op.
+      - spinner/icon/badge on waiting fields
+
+================================================================================
+
+javadoc
+-------
+Supported column types and mention DbRead/DbWriter for other cases.
+
+KeyDisplayValueSwingModel document EventList lock and general locking
+maybe also in AbstractComboBoxListSwingModel
+KeyDisplayValueSwingModel.isD2Enabled(), versus hasD2()
+
+================================================================================
+
+document
+--------
+best practices, use named constraints for better error messages
+
+    PRIMARY KEY: Uniquely identifies each record.
+        Commonly named: PK_TableName_ColumnName.
+    FOREIGN KEY: Links a column to a primary key in another table to enforce referential integrity.
+        Commonly named: FK_TableName_ParentTable.
+    UNIQUE: Restricts columns from containing duplicate values.
+        Commonly named: UQ_TableName_ColumnName.
+    CHECK: Restricts the range or format of accepted values.
+        Commonly named: CHK_TableName_ColumnName.
+    DEFAULT: Automatically applies a default fallback value if none is provided.
+        Commonly named: DF_TableName_ColumnName. 
+
+    NOT NULL
+        Commonly named: NN_TableName_ColumnName. 
+
+================================================================================
+
+SSListItemFormat SSFormat handling.
+
+DBComboBox2
+    - firePropertyChange, needed? Ifso use eventbus? setSeparator()
+    - If a metadatachange is issued when setAllowNull is manually change
+      then combobox2 would not need to override setallownull. BUT TEST.
+    - dateFormat needs work. Use SSFormat.
+    - get rid of "fire..."
+
+================================================================================
+
+Offer glazed as an add on.
+
+================================================================================
+
+Use builders to create components. Also to set properties.
+
+================================================================================
+
+RSC vs SSComponent - work undo/redo into RSC methods
+Or maybe something between RSC and SSComponent. NOTE
+that RSC is read only
+
+================================================================================
+
+Validator is connected to SSComponent; but it really should be connected
+to some RowSet column. Consider two components for same column but with
+different validation criteria.
+
+Related. Could mark the "other" SSComponent read only, so all input goes
+through only one component.
+
+================================================================================
+
+Why maintain currentRow and rowCount in navigateState? How much perf gain?
+rowCount is usded/cached by the Spinner "of ###"
+Get rid of NavigateState.currentRow variable.
+    Just use rs.getRow(), google says no database connect.
+    rowCount does seem to be needed, cached in Spinner
+
+SSDataNavigator - clean up the setRowSet/setRowsModel stuff.
+
+RowsModel.setRowSet() - better dbNav handling
+    - Associate DBNav with a RowSet
+      (temp kludge until DBNav splits to DB/NavigatorState).
+    - Tweak (interim) RowsModel.create()
+      can provide RowSet's SSDBNav and its default usage.
+
+      If there actually should be a default dbNav, shouldn't just be picked
+      up from the first dbNav that create sees. If null, use "new SSDBNav(){}"
+
+Split DBNav into DB-stuff/NavigatorState. 
+
+Is RowsAction.foreceEvent needed? Always generate event.
+
+================================================================================
+
+Document that some row set state changes, like moving to insert row, are not
+detectable. Such changes have to be made through the lib. Maybe want API
+to inform lib of state changes, not sure why it would be needed.
+
+Document things that must be done only through the lib, or maybe they can be
+done externally, but be done atomically.
+
+
+================================================================================
+
+Can a RowSet be in two RowsModel
+
+In RowsModel.setRowSet() if prev undoRow.isDirty() should this require override?
+And what about if any col has stuff for redo, although no change from database?
+Along with "yellow" border for uncommited field, something for non-empty undo
+stack and some way to bring up display of stack in list.
+
+Might want an API for component disable, with a temporary override when RS null.
+
+Clean up, or get rid of, EnqueueRowsModelEvent interface
+
+Events that get eBus.posted could have an optional handler which is invoked if the
+event generates an exception. Beware multiple handler invocations...
+
+================================================================================
+
+Want two layers of Action control. RowSet and DataNavActions. Also RowsModel control?
+
+Note there is also DBNav with allowDeletion, allowInsertion, allowUpdate.
+Consider DBNav the RowSet control?
+TODO: in DBNav seperate allow* from perform*Ops. Inheritance?
+
+What's the right interaction between RowSet/DataNavActions/DBNav/[sg]etMethods
+
+DataNavActions is per window. Enable/disable writing/updating/inserting.
+
+This mean the DataNavActions needs actions backed by RowSet actions.
+
+
+External controls
+    - callExecute
+    - confirmDeletes
+    - deletion (enableDeletion, deleteOK)
+    - insertion (enableInsertion, insertOK)
+    - writeable (writeOK)
+
+    - DBNav
+    - NavCombo
+
+Allow multiple NavCombo for a RowSet?
+
+In DBComboBox2 get rid of [sg]etQuery? Add query argument to execute?
+
+In RowsActions, ACT_REFRESH has "if (callExecute)", when false does nothing; with
+an unconditional "getNavState().dBNav.performRefreshOps()" after the if. The
+implmentations of dBNav.performRefreshOps() are related to syncManager; used in a
+few examples. It triggers execution of the nav comboBox query. ACT_REFRESH should
+probably be disable when callExecute is false (since nothing happens). Note the
+use/meaning of callExecute is under investigation. Also, in the examined
+performRefreshOps() the "syncManager.sync()" should be in a finally clause.
+
+Othe callExecute notes
+    NavigateState remove callExecute stuff
+    DataGrid still has callExecute
+    If there are requirements for callExecute, what are they and how to implement
+    Seems callExecute is for bugs in old MySQL jdbc drivers.
+
+================================================================================
+
+Examine, for CachedRowSet, SSUtils get/set PrimaryKey stuff, key_seq misused I think.
+
+Many databases have extended metadata for example. lookup stuff for keys info.
+
+================================================================================
+
+Convert/move to core
+
+    SSDBNavImpl, SSDBNav - rewrite use meta data
+
+    SSCellEditing.java
+    SSDataGridAdapter.java
+    SSDataGridHandle.java
+    SSDataGrid.java
+    SSDataValue.java
+    SSTableKeyAdapter.java
+    SSTableModel.java
+
+    SSDataNavigator???
+
+SSTextSupport --> TextSupport
+
+================================================================================
+
+What happens if on insert row and do an execute?
+    Assume? and execute will generate a "RowSetListener.rowSetChanged()"
+    Use this to get off the insert row.
+
+================================================================================
+
+Looking at Navigation
+
+An SS screen shows data from a single row of a ResultSet and there is a navigation bar
+which changes which row is displayed. The nav bar also controls insert/delete/modify.
+In this context a screen is a collection of components, not a window; a window could
+have several screens. Typically SS works with ResultSets that are
+ResultSet.TYPE_SCROLL_INSENSITIVE and ResultSet.CONCUR_UPDATABLE; they allow random
+access and can be modified.
+
+By default, when the ResultSet is modified, the database is updated and the ResultSet's
+query is re-executed. This preserves how things display, consider an "ORDER BY" clause.
+The re-execution is handled by DBNav pre/post ops.
+
+Cursor Navigation
+-----------------
+A screens displays information for the cursor, which is the current row. If two screens
+are displaying data from the same row set, they will be displaying the same data since
+the ResultSet only has one cursor.
+
+Random Navigation (not currently implemented)
+-----------------
+Since usually a ResultSet supports random access, there's no reason why the row being
+displayed has to be the cursor row. In particluar, two screen for the same ResultSet
+could show different rows.
+
+Notes
+-----
+- The number of rows is the only thing that must be shared.
+  The current row can be kept by the navigation bar.
+- Non scrollable ResultSet, TYPE_FORWARD_ONLY, could be better handled.
+  For example Prev/First disabled.
+
+
+================================================================================
+
+================================================================================
+============================= BUGS =============================================
+================================================================================
+
+--- minor display artifact
+If at bottom of stack, then Redo to an error, swithes from canNavigate btns to
+only RevertChanges btn. There is a brief flash of the commit button on the way,
+minor issue to ignore for now.
+
+
+--- backing out text component error (see DONE)
+    This issue may relate to the issues with pluginValidate leaving things in
+    an unusual state. FIND THOSE COMMENTS...
+
+    
+
+---
+ACT_REVERT on cached row set.
+
+
+================================================================================
+============================= HMMMM ============================================
+================================================================================
+
+
+=== RENAME/MOVE
+
+Rename swingset/utils package to swingset/base
+
+Put SSComponent and SSCommon in package with RowsModel.
+Rename package "core" to "seesaw". Rename "navigate" to "core"
+
+RENAME RowsModelEventHandling to RowSetEventHandling
+
+Rename to SSComponent from SSComponentInterface
+Rename SSDataNavigator to SSNavigatorBar ???
+Rename NavigateActions to Navigation? BETTER: make Navigation a model.
+
+Rename SSCommon to SSBase ???
+
+move SSCommon to core/Base.java
+
+Rename package swingset.utils to swingset.base
+
+In combobox rename "Mapping" to "MapKey"; "Option" to "Display". (display?)
+
+TODO: ComboBox2/ComboBox: class ComboBox2<M,O,O2> extends ComboBox<M,O>?
+
+Rename ssCommon to ssCommonUseGetSSCommon.
+
+================================================================================
+
+---
+Change RowSet to ResultSet as much as possbile.
+
+Broader use of RSC
+Format field in RSC? For output format. (parse can be multiple)
+
+---
+
+---
+Cleanup
+    more logging for null formatter switching
+    Error in not edit and display formatters
+    Clean up FormatterAssist, SSNumberFormatter, 
+
+---
+Fixup SSFormattedTextField to consider user's containsUserText.
+
+---
+There's
+    formatterAssist::getFormatLiterals - NOT USED
+    getDecimalFormatSymbols - for getLiterals?
+
+---
+Fixup SSFormattedTextField to consider user's containsUserText.
+Optimize contains user text.
+
+---
+stringToValue/valueToString
+    Look at the stringToValue/valueToString stuff in FormatterAssist. Get rid of it?
+    Examine MaskFormatter stringToValue. Add verifier check for getAllowNull()
+
+    DefaultFormatter::isValidEdit
+        InternationalFormatter::stringToValue(text)
+            NumberForatter::stringToValue(text, format)
+                parseObject thows, caught in isValidEdit
+    SSNumberFormatter::valueToString
+
+---
+utils/SSMsg - NOTE: RowSetOps CreateMessage(RSC)
+    Msg(text, (rsc) -> rsc.getBoundColumnText())
+    Msg(text, List.of((rsc) -> rsc.getBoundColumnText())) or "new []"?
+
+---
+Examine SSFormattedTextField::updateSSComponent
+
+
+
+
+---Navigation Model
+NavigateActions is tied to a rowset; and that object may be shared. Maybe better
+situation, have a thin object, e.g. Navigation, that references, and delegates
+to, a NavigateActions. Then Navigation is the model that is usually used, and it
+can fire events (or send a message over the bus) when its rowset changes. As is
+common, multiple components can use the same Navigation. NavigateActions is
+still there pretty much as is, but hidden inside a Navigation. An example of
+where this is wanted; an SSDataNavigator has a Navigation model, if the rowset
+in the Navigation changes, the SSDataNavigator detects this event and adjusts
+accordingly.
+---
+Should the methods in SSDataNavigator that delegate to getNavigatorActions()
+be deprecated? If NavigatorActions are considered a model, then there's
+some precedence to keep some of them for convenience.
+---
+There are several deprecated methods in SSDataNavigator.
+
+---
+re-indent swingset
+// vi:set ts=8 sw=4 sts=4 noet:
+
+--- Conversion enable
+catch SQLFeatureNotSupportedException and do conversion manually;
+first check specified configuration for DB?
+In exception, fill in "Boolean convert[from,to]" as needed,
+or maybe check supportsConvert(int fromType, int toType).
+Run a program that checks what works and produces something that can be
+given to SS for configuration.
+
+---
+NumberField
+    The use of Locale is inconsistent
+
+    TEST/VERIFY: override mask formatters and/or derive from base formatters.
+
+---
+Regarding date/time formatting/parse consider RsolverStyle.
+Could be overall option; or just part of the format, e.g.
+SSFormat.DATE_MMDDYYYY_SLASH_SMART, SSFormat.DATE_MMDDYYYY_SLASH_LENIENT, 
+and _STRICT is the default.
+
+================================================================================
+=========================== CLEANUP ============================================
+================================================================================
+
+---
+In NavigateActions, should the static methods have instance counterparts,
+
+---
+When onInsertRow, visual indication new record. Color the "Add record" icon; Yellow?
+---
+RowSetState, part of Navigation, needs to broadcast state changes, inserting.
+Then NavigatorBar can use that info to give a visual indicator.
+---
+Navigation/rowset state change event. Like inInsertRow, noRecords, ...
+Need this so navigator UI can show things...
+---
+When no records and not insertRow, visual indication that can't edit.
+Disable all fields, and/or green border around "Add new record" icon.
+
+---
+Navigator
+    - Consider that up/down arrows now optionally do next-row/prev-row. How
+      about, when AutoCommit is off, doing Shift-Ctrl-up/down (or whatever) does
+      commit then move. Then the convenience of autoCommit is still available.
+      And if people just started doing Shift-Ctrl-up all the time, then ...
+
+    - The visual arrows show left/right, but the keys are up/down. Are there any
+      button pngs around in the same style that display up/down? Maybe at some
+      point...
+
+---
+Examine ConvertType both to/from convert?
+
+---
+Add verifier to JTextField, and other's, so it won't give up focus.
+Should this be in SSComponent? Options to control it.
+
+---
+setValidator in SSCommon, but not SSComponentInterface. Needed this in general?
+
+---
+
+---
+Get rid of all direct row set access; always go through RowSetOps.
+
+In SSCommon::undoRedoUpdateObject: getRowSet().updateObject(getBoundColumnIndex(), value);
+
+
+--- ?????
+Change to use SSFTF
+The DATE/TIMESTAMP in a JTextField has the problem of ignoring errors in format.
+Play with example3. Hit next on invalid value. 
+
+NOTE: There's an ignored exception thrown by
+Date/Time/Timestamp/getSQLDate.valueOf.
+
+---
+Is this about switching rowset? Might have to do with switching rowset in navigator.
+
+NavigateActions monitors a single RowSet. 1 - 1
+SSDataNavigator works on a given RowSet. can change the rowset
+
+Could have intermediate that can plug into SSDataNavigator actions don't change.
+Need to update Action/model state when Rowset changes.
+
+---
+UIManager.getLookAndFeel().provideErrorFeedback(JFormattedTextField.this);
+
+---
+Examine where conversions are used. And the conversion. Work this into 
+jdbc spec and behavior spec.
+
+---
+Add Calendar conversions? Skip it, go directly to java.time.
+
+---
+
+
+
+================================================================================
+============================ EXTEND ============================================
+================================================================================
+
+JavaFX interoperability.
+
+================================================================================
+============================ OTHER =============================================
+================================================================================
+
+=== CHART
+
+Chart components.
+    https://github.com/jfree/jfreechart
+        https://www.jfree.org/jfreechart/
+    https://github.com/jfree/orson-charts
+        3D charts - recommended by jfreechart
+    https://github.com/knowm/XChart
+
+=== WEAK LISTENERS
+
+Search excerpt: weak listener java
+
+Using libraries:
+- JavaFX: The JavaFX library provides built-in weak listener implementations,
+  such as WeakChangeListener and WeakInvalidationListener.
+- NetBeans: The NetBeans platform provides the WeakListeners class, which
+  allows you to easily create weak listeners for any listener interface. 
+
+Netbeans' docs are:
+https://bits.netbeans.org/dev/javadoc/org-openide-util/org/openide/util/WeakListeners.html
+
+================================================================================
+============================ TOOLS =============================================
+================================================================================
+
+DbCap - database capabilities
+    Java program using jdbc that tried a lot of stuff on a DB and reports compatibility.
+    Goal is to produce DB plugin info that can be directly used by SS.
+
+Get list of SyncProvider
+What conversions are suppport for updateXxx
+What conversions are suppport for setXxx
+
+================================================================================
+=========================== OPTIONS ============================================
+================================================================================
+
+
+---
+Allow navigation away from error field. There can be several fields with red/yellow.
+Prevent navigation away from record with invalid field. SSFTF/SSTF consistent
+
+---
+Option to enable/disable verifier/focus-change. Globally, per window, per component.
+Window can have a lookup.
+
+================================================================================
+=========================== FEATURES ===========================================
+================================================================================
+
+Database update frequency, YELLOW STATE
+    Question about commitsOnValidEdit currently set to true (matches mask default I
+    think). So every keystroke causes database update. Without this wait for focus
+    change or return, but then the visible data is out out sync. Could have a
+    border, like yellow, that means the data looks ok so far, but hasn't been sent
+    to the database.
+
+    NOTE: every keystroke that's valid is a database write.
+    Safest, but might want to only write if loose focus,
+    or many seconds have gone by, or shutdown. Maybe an option.
+
+---
+
+TODO: Allow user to dynamically select input mask/format. Like Date style
+Field tooltip with format/...
+
+============================================================================
+============================ ARCHITECTURE ==================================
+============================================================================
+
+        NAVIGATION
+        SSCOMPONENT/SSCOMMON
+        FLUENT API
+        ERRORS
+        EVENTS
+        OPTIONS
+        ANNOTATIONS
+        EVENTBUS
+        CONVERT
+
+--------------
+
+============== NAVIGATION
+
+SSSyncManager - Rework combo navigation somehow
+    - maybe there's a navigator "thing"/interface.
+      Implement it in DBComboBox?
+    - Maybe SSSyncManager needs to be in navigation.
+    - Maybe this combo navigator stuff needs specialized broadcast/events.
+    - genericize for key type: SSSyncManager<K,RN>
+    - Handle multiple Navigators
+
+
+See SSDBComboBox::execute() uses SSUtils.updateSSComponent_HACK.
+Maybe there needs to be broadcast/event about the query so that SSCommon can
+listen to it and do updateSSComponent_HACK as needed.
+
+See comment in SSBaseComboBox::setSelectionPending about when getAllowNull
+empty combo box shows an error.
+
+============== SSCOMPONENT/SSCOMMON
+
+The interface SSComponent acts like a class and delegates to SSCommon.
+This simulates multiple inheritance: class SSGui extends Gui implements SSComponent...
+Goal Hide SSCommon. Make SSCommon package accessible (not public).
+
+
+Document SSComponent as groups of methods.
+
+Should SSCommon only be used internaly and from SSComponent?
+SSComponent package access only. See proposed @SSCommon annotation.
+
+Does sscommon ever need to be referenced outide of SSComponent?
+At least for instance methods. Maybe static methods are ok public.
+
+Minimal direct use, if at all, by implementations of SSComponent.
+
+For example, setDecorator/setValidator/setTextDecorator only publicly
+through SSComponent.
+
+---
+TextDecorator capable SSTextField or any SSComponent
+
+Improve API for textDecorator, get rid of SSFormattedTextField::TextDecEnbl
+- TextDecorator a property for any SSComponent defines how the text is descorated.
+  Also defines algorithm for how to apply decoration.
+
+TextDecorator takes object value and JDBCtype.
+decorator focus proxy?
+
+============== FLUENT API
+
+(find the notes from ???)
+
+Wonder if rxjava-jdbc could be useful as part of a fluent jdbc capability.
+
+============== ERRORS
+
++++ exceptions without generating errors or retry
+
+Make sure error dialogs and logging clearly differentiate (as much as possible)
+user error, database error, internal error.
+
+There are several places where a database exception is logged but there is
+no notification to the user, e.g. SSCommon::getBoundColumnObject().
+What are good ways to handle this. Option to close app, retry...
+Maybe the SQLException can be examined to provide better info and hints.
+Might need plugin per database type to help decode exception.
+
+updateColumnText can get sql exception, e.g. chars don't fit.
+This brings up a dialog, and during testing if click OK
+there is no error.
+In RowSetOps could 'catch(SQLException ex) {excount++; throw ex;}
+and a getExCount(). Maybe the counter could be in postRowSetError.
+
+For example1, status enter 2000, click commit. get dialog but no indication
+of which column is a problem. For H2 dialog says constraint error. Plugin
+to help decode error. This shows set command, what about values?
+        Exception occured while saving row.
+        "Check constraint violation: "CONSTRAINT_37: ";
+        SQL statement: UPDATE "PUBLIC"."SUPPLIER_DATA"
+            SET "SUPPLIER_ID"=? ,"SUPPLIER_NAME"=? ,"STATUS"=? ,"CITY"=?
+            WHERE "SUPPLIER_ID"=? [23513-240]"
+
+
+============== EVENTS
+
+Consider
+SSCheckBoxListener - does the decorator get called? Allthough either true/false
+is valid, there could be an interactions of components and this field
+should be marked?
+
+---
+Each SSComponent has getSSComponentListener. This listener, at lease for SSSTF,
+may do postRowSetModifiedError. Explore...
+
+---
+In bind, when doing "eventListener = getSSComponent().getSSComponentListener()",
+could generate a wrapper that does "checkRowOK()". But then can't return even
+earlier if isAdjusting, slider/list-select (so what).
+Does doing getRow() involve contacting the DB server?
+
+---
+postRowSetModified (not with Error) is only done from RowSetOps.
+
+---
+In NavigateActions.undoRedo after navActs.doUndoRedo() the database is
+updated directly, then issueRowChanged()
+    -->rowSetListener.rowChanged()-->invokeLater(updateSSComponent).
+So need to defer checking sscomponent valid and then
+posting modification messages.
+
+============== OPTIONS
+
+try to get rid of all the setters. cleanField/decorator/validator/...
+If all these items are Interfaces, then can use Lookup. Have a single
+method, e.g. addOp, that puts something into and/or replaces it in the
+Lookup. And get rid of the functions that can be overridden. After call
+to superclass, do addOp to replace it with "our".
+
+cleanField is currently method that's overridden. setValue(getAllowNull() ? null : 777)
+Could have map "Supplier<val>", look it up by class? Or maybe constructor
+    // maybe Function<SSComponent,Object> cleanFieldOp;
+    // maybe Runnable cleanFieldOp;
+    MyField(...) { // CONSTRUCTOR
+        ///// setCleanField((comp)->setValue(comp.getAllowNull() ? null : 777));
+        setCleanField(()->getAllowNull() ? null : 777); // or "... this.getAllowNull() ? ..."
+        // used like setValue(cleanFieldOp.get())
+    }
+    protected Supplier<?> cleanFieldOp;
+    private setCleanField(Supplier<?> cleanFieldOp) {
+        // Overwrites setting by superclasses.
+        this.cleanFieldOp = cleanFieldOp;
+    }
+    final public void cleanField() { // want final in SSComponent, but can't do it
+        if (xxx = Lookup(CleanField.class))
+            xxx.run();
+        //else if (cleanFieldOp)
+        //    cleanFieldOp.run();
+    }
+Maybe in SSCommon only, final cleanField(lookup...).
+
+Or just keep cleanField as is.
+
+Might want to specify cleanFieldOp per component, kind of like the way decorator specified.
+Or have Interface CleanFieldOp, add it to components lookup. First check lookup, then 
+SS-5 commit with some 4.1 applicable fixes
+
+
+============== ANNOTATIONS
+
+Have an annotation, e.g. @SSCompMethod NewM() {...}, used on something in SSCommon, and that
+automagically becomes "default NewM() { getSSCommon.NewM(); }" really want these things
+to be "final" in SSComponent. HARD TO DO and COMPILE.
+
+@SSCommon
+    - marks a default interface in SSComponent that delagates to SSCommon
+    - Compile error if overridden
+    - Would like to autogenerate the delagation code, but just "nice to have"
+@OverrideSSCommon
+    - Prevents the error normally generated by overridding @SSCommon
+
+============== EVENTBUS
+
+About using JavaRx instead of EventBus. For EventBus disadvantages see
+    https://github.com/google/guava/wiki/EventBusExplained
+JavaRx has many features that are not needed for SS. Looking through the
+disadvantages, there is little that affects SS.
+It does have the advantages of a cleaner, albeit much more complex,
+UI; more complexity for
+little additional benefit. A real advantage would be if SS wants to use R8 and
+Proguard. If/when SS uses more features
+
+EventBus replacement
+
+    rxjava - there are .blocking*() methods
+
+    https://github.com/ReactiveX/RxJava
+    https://www.baeldung.com/java-9-reactive-streams
+    https://www.baeldung.com/rx-java
+    https://www.baeldung.com/rxjava-backpressure
+
+    https://www.baeldung.com/rx-relay       an event bus
+
+    rxjava as event bus the right way
+    https://kau.sh/blog/implementing-an-event-bus-with-rxjava-rxbus/
+    https://medium.com/dionysis-lorentzos-blog/rxjava-as-event-bus-the-right-way-10a36bdd49ba
+    https://metova.com/how-to-use-rxjava-as-an-event-bus/
+    https://medium.com/android-news/super-simple-event-bus-with-rxjava-and-kotlin-f1f969b21003
+
+    Note rxjava-jdbc https://github.com/davidmoten/rxjava-jdbc
+
+============== CONVERT
+
+SS ConvertType is extensive, it can do B.5. 
+SS handles conversions as defined by B.5 for RowSet when doing ResultSet update.
+
+Allow character conversions to whatever.
+
+https://stackoverflow.com/questions/29773390/getting-the-date-from-a-resultset-for-use-with-java-time-classes
+
+Today most of us are using JDBC 4.2 compliant drivers, which improves the
+situation quite a bit compared to the answers from 2015.
+
+To get a LocalDate from your result set:
+
+LocalDate dateFromDatabase = yourResultSet.getObject(yourColumnIndex, LocalDate.class);
+
+or
+
+LocalDate dateFromDatabase = yourResultSet.getObject("yourColumnLabel", LocalDate.class);
+
+No new method has been added to ResultSet for this to work. The getObject method
+was there all the time. The new thing is that since JDBC 4.2 it accepts
+LocalDate.class as the second argument and returns a LocalDate. The above works
+when the query returns a column with SQL datatype date (really the JDBC type
+counts, but they tend to agree).
+
+You can pass classes of other java.time types too. And get the corresponding type back. For example:
+
+OffsetDateTime dateTimeFromDatabase
+        = yourResultSet.getObject(yourTimestampWithTimeZoneColumnIndex, OffsetDateTime.class);
+
+The java.time types to use are:
+
+SQL datatype            | java.time type
+------------------------+-----------------------------------------------------------
+date                    | LocalDate
+time                    | LocalTime
+timestamp               | LocalDateTime
+timestamp with timezone | Officially OffsetDateTime; many drivers accept Instant too
+time with timezone      | OffsetTime
+
+For passing the other way, from Java to your database (for use as query
+parameters or for storing) PreparedStatement.setObject now accepts objects of
+the above java.time types too. Since you are passing an object of a type, there
+is no need for a separate type parameter when going this way.
+
+============= DATETIME and/or _WITH_TIMEZONE
+
+Some of the conversions in convertType, while understandable, maybe shouldn't be there
+https://stackoverflow.com/questions/29773390/getting-the-date-from-a-resultset-for-use-with-java-time-classes
+For example converting date to timestamp uses zero for time. Not precise.
+
+Can possibly/probably just get rid of the Date, since JDBC has interop
+or at lease claims to.
+
+Date <--> LocalDate
+=============
+    https://stackoverflow.com/questions/33066904/localdate-to-java-util-date-and-vice-versa-simplest-conversion
+
+java.util.Date.from(    // Convert from modern java.time class to troublesome old
+                        // legacy class.  DO NOT DO THIS unless you must, to inter
+                        // operate with old code not yet updated for java.time.
+    myLocalDate         // `LocalDate` class represents a date-only, without
+                        // time-of-day and without time zone nor offset-from-UTC. 
+    .atStartOfDay(      // Let java.time determine the first moment of the day on
+                        // that date in that zone. Never assume the day starts at 00:00:00.
+        ZoneId.of( "America/Montreal" ) // Specify time zone using proper name in
+                                        //`continent/region` format, never 3-4
+                                        // letter pseudo-zones such as “PST”, “CST”, “IST”. )                   // Produce a `ZonedDateTime` object. 
+    .toInstant()        // Extract an `Instant` object, a moment always in UTC.
+)
+
+
+Retrieve LocalDate from result set
+    https://stackoverflow.com/questions/51632735/jdbc-result-set-retrieve-localdatetime
+
+Database support for timstamp with timezone/offset
+    https://github.com/hibernate/hibernate-orm/discussions/4201
+        Oracle/H2 supports them
+        Postgress supports by converting to UTC
+
+Hibernate 6 has incubating support. It has a split into two columns option.
+"When configuring TimeZoneStorageType.COLUMN, Hibernate stores the timestamp
+without timezone information and the timezone’s offset to UTC in separate
+database columns."
+    https://thorben-janssen.com/hibernate-6-offsetdatetime-and-zoneddatetime/
+
+============= KEYS
+
+Multi column keys
+
+============= SQL
+
+Any issues involved with prepared statements?
+
+SyncProvider/SyncResolver. Find with nice UI.
+https://docs.oracle.com/javase/tutorial/jdbc/basics/cachedrowset.html
+
+Why is ResultSet's updateXxx used? Would RowSet's setXxx be better?
+The updateXxx methods handle the primary keys automatically.
+At least for H2, with an updateRow, the row is read to plug in the values
+from the data base that have not been modified. Can this give INCONSISTENT row?
+If OK with inconsistent row, could using a prepared statement to write, instead
+of the update row, avoid the DB read?
+
+Wonder how other DBs handle this?
+
+Any issues with various ResultSet "type". Concurrency, Holdability, ...
+
+Working with and/or interactions with TypeMap.
+
+Interactions with stored procedures? Probably not, SS is for RowSet.
+Possbile that future enhancements might make some things easier,
+but who know what stuff.
+
+Handle tables without a key.
+
+Bug with column name when "as xxx" phrase.
+
+--- H2 notes
+
+- for H2, DatabaseMetaData.supportsConvert() does "return true".
+- updateObject does the conversions specified by appendix B.5 for setObject.
+- overflow exceptions possible when narrowing
+
